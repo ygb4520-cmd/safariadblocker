@@ -1,0 +1,34 @@
+/* Generic ad-container hiding. Everything here is scoped under
+   html.atb-hide-ads so content.js can toggle it on/off at runtime to match
+   the Ads/Trackers toggles and per-site pause state -- see content.js. */
+
+html.atb-hide-ads [id^="google_ads_iframe"],
+html.atb-hide-ads [id^="div-gpt-ad"],
+html.atb-hide-ads ins.adsbygoogle,
+html.atb-hide-ads [data-ad-slot],
+html.atb-hide-ads [data-ad-client],
+html.atb-hide-ads [class*="ad-slot" i],
+html.atb-hide-ads [class*="ad-container" i],
+html.atb-hide-ads [class*="ad-wrapper" i],
+html.atb-hide-ads [class*="ad-banner" i],
+html.atb-hide-ads [id*="ad-container" i],
+html.atb-hide-ads [id*="ad-banner" i],
+html.atb-hide-ads [class^="advertisement" i],
+html.atb-hide-ads [id^="advertisement" i],
+html.atb-hide-ads [class*="banner-ad" i],
+html.atb-hide-ads [id*="taboola" i],
+html.atb-hide-ads [id*="outbrain" i],
+html.atb-hide-ads [class*="taboola" i],
+html.atb-hide-ads [class*="outbrain" i],
+html.atb-hide-ads [id^="ad-"],
+html.atb-hide-ads [class*="ad-responsive" i],
+html.atb-hide-ads [class*="ad-body" i],
+html.atb-hide-ads [class*="AdContainer" i],
+html.atb-hide-ads [class*="AdWrapperContainer" i],
+html.atb-hide-ads [class~="ad"][class*="StoryPartContainer" i],
+html.atb-hide-ads [class~="p-ad"],
+html.atb-hide-ads iframe[src*="doubleclick.net"],
+html.atb-hide-ads iframe[src*="googlesyndication.com"],
+html.atb-hide-ads iframe[src*="amazon-adsystem.com"] {
+  display: none !important;
+}

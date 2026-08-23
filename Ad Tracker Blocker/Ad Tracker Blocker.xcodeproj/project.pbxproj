@@ -1,0 +1,631 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		18ECD28E30103EAF00F8C4E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18ECD28D30103EAF00F8C4E9 /* AppDelegate.swift */; };
+		18ECD29230103EAF00F8C4E9 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29030103EAF00F8C4E9 /* Main.html */; };
+		18ECD29430103EAF00F8C4E9 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29330103EAF00F8C4E9 /* Icon.png */; };
+		18ECD29630103EAF00F8C4E9 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29530103EAF00F8C4E9 /* Style.css */; };
+		18ECD29830103EAF00F8C4E9 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29730103EAF00F8C4E9 /* Script.js */; };
+		18ECD29A30103EAF00F8C4E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18ECD29930103EAF00F8C4E9 /* ViewController.swift */; };
+		18ECD29D30103EAF00F8C4E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29B30103EAF00F8C4E9 /* Main.storyboard */; };
+		18ECD29F30103EB000F8C4E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD29E30103EB000F8C4E9 /* Assets.xcassets */; };
+		18ECD2A630103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 18ECD2A530103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		18ECD2AB30103EB000F8C4E9 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18ECD2AA30103EB000F8C4E9 /* SafariWebExtensionHandler.swift */; };
+		18ECD2BE30103EB000F8C4E9 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2B730103EB000F8C4E9 /* popup.js */; };
+		18ECD2BF30103EB000F8C4E9 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2B830103EB000F8C4E9 /* background.js */; };
+		18ECD2C030103EB000F8C4E9 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2B930103EB000F8C4E9 /* popup.html */; };
+		18ECD2C130103EB000F8C4E9 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2BA30103EB000F8C4E9 /* icons */; };
+		18ECD2C230103EB000F8C4E9 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2BB30103EB000F8C4E9 /* manifest.json */; };
+		18ECD2C330103EB000F8C4E9 /* rules in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2BC30103EB000F8C4E9 /* rules */; };
+		18ECD2C430103EB000F8C4E9 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2BD30103EB000F8C4E9 /* popup.css */; };
+		D8596D45448B2AF662862FF1 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 21B7E98C2B16455541850AB8 /* content.js */; };
+		8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */ = {isa = PBXBuildFile; fileRef = ED83A101588AD8A646F8475A /* cosmetic.css */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		18ECD2A730103EB000F8C4E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 18ECD28230103EAF00F8C4E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 18ECD2A430103EB000F8C4E9;
+			remoteInfo = "Ad Tracker Blocker Extension";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		18ECD2B230103EB000F8C4E9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				18ECD2A630103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		18ECD28A30103EAF00F8C4E9 /* Ad Tracker Blocker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Ad Tracker Blocker.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		18ECD28D30103EAF00F8C4E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		18ECD29130103EAF00F8C4E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		18ECD29330103EAF00F8C4E9 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		18ECD29530103EAF00F8C4E9 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		18ECD29730103EAF00F8C4E9 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		18ECD29930103EAF00F8C4E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		18ECD29C30103EAF00F8C4E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		18ECD29E30103EB000F8C4E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		18ECD2A030103EB000F8C4E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		18ECD2A530103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Ad Tracker Blocker Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		18ECD2AA30103EB000F8C4E9 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		18ECD2AC30103EB000F8C4E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		18ECD2B730103EB000F8C4E9 /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = popup.js; path = Resources/popup.js; sourceTree = "<group>"; };
+		18ECD2B830103EB000F8C4E9 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
+		18ECD2B930103EB000F8C4E9 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = Resources/popup.html; sourceTree = "<group>"; };
+		18ECD2BA30103EB000F8C4E9 /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = Resources/icons; sourceTree = "<group>"; };
+		18ECD2BB30103EB000F8C4E9 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		18ECD2BC30103EB000F8C4E9 /* rules */ = {isa = PBXFileReference; lastKnownFileType = folder; name = rules; path = Resources/rules; sourceTree = "<group>"; };
+		18ECD2BD30103EB000F8C4E9 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = Resources/popup.css; sourceTree = "<group>"; };
+		21B7E98C2B16455541850AB8 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
+		ED83A101588AD8A646F8475A /* cosmetic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = cosmetic.css; path = Resources/cosmetic.css; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		18ECD28730103EAF00F8C4E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		18ECD2A230103EB000F8C4E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		18ECD28130103EAF00F8C4E9 = {
+			isa = PBXGroup;
+			children = (
+				18ECD28C30103EAF00F8C4E9 /* Ad Tracker Blocker */,
+				18ECD2A930103EB000F8C4E9 /* Ad Tracker Blocker Extension */,
+				18ECD28B30103EAF00F8C4E9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		18ECD28B30103EAF00F8C4E9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				18ECD28A30103EAF00F8C4E9 /* Ad Tracker Blocker.app */,
+				18ECD2A530103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		18ECD28C30103EAF00F8C4E9 /* Ad Tracker Blocker */ = {
+			isa = PBXGroup;
+			children = (
+				18ECD28D30103EAF00F8C4E9 /* AppDelegate.swift */,
+				18ECD29930103EAF00F8C4E9 /* ViewController.swift */,
+				18ECD29B30103EAF00F8C4E9 /* Main.storyboard */,
+				18ECD29E30103EB000F8C4E9 /* Assets.xcassets */,
+				18ECD2A030103EB000F8C4E9 /* Info.plist */,
+				18ECD28F30103EAF00F8C4E9 /* Resources */,
+			);
+			path = "Ad Tracker Blocker";
+			sourceTree = "<group>";
+		};
+		18ECD28F30103EAF00F8C4E9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				18ECD29030103EAF00F8C4E9 /* Main.html */,
+				18ECD29330103EAF00F8C4E9 /* Icon.png */,
+				18ECD29530103EAF00F8C4E9 /* Style.css */,
+				18ECD29730103EAF00F8C4E9 /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		18ECD2A930103EB000F8C4E9 /* Ad Tracker Blocker Extension */ = {
+			isa = PBXGroup;
+			children = (
+				18ECD2B630103EB000F8C4E9 /* Resources */,
+				18ECD2AA30103EB000F8C4E9 /* SafariWebExtensionHandler.swift */,
+				18ECD2AC30103EB000F8C4E9 /* Info.plist */,
+			);
+			path = "Ad Tracker Blocker Extension";
+			sourceTree = "<group>";
+		};
+		18ECD2B630103EB000F8C4E9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				18ECD2B730103EB000F8C4E9 /* popup.js */,
+				18ECD2B830103EB000F8C4E9 /* background.js */,
+				18ECD2B930103EB000F8C4E9 /* popup.html */,
+				18ECD2BA30103EB000F8C4E9 /* icons */,
+				18ECD2BB30103EB000F8C4E9 /* manifest.json */,
+				18ECD2BC30103EB000F8C4E9 /* rules */,
+				18ECD2BD30103EB000F8C4E9 /* popup.css */,
+				21B7E98C2B16455541850AB8 /* content.js */,
+				ED83A101588AD8A646F8475A /* cosmetic.css */,
+			);
+			name = Resources;
+			path = "Ad Tracker Blocker Extension";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		18ECD28930103EAF00F8C4E9 /* Ad Tracker Blocker */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 18ECD2B330103EB000F8C4E9 /* Build configuration list for PBXNativeTarget "Ad Tracker Blocker" */;
+			buildPhases = (
+				18ECD28630103EAF00F8C4E9 /* Sources */,
+				18ECD28730103EAF00F8C4E9 /* Frameworks */,
+				18ECD28830103EAF00F8C4E9 /* Resources */,
+				18ECD2B230103EB000F8C4E9 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				18ECD2A830103EB000F8C4E9 /* PBXTargetDependency */,
+			);
+			name = "Ad Tracker Blocker";
+			packageProductDependencies = (
+			);
+			productName = "Ad Tracker Blocker";
+			productReference = 18ECD28A30103EAF00F8C4E9 /* Ad Tracker Blocker.app */;
+			productType = "com.apple.product-type.application";
+		};
+		18ECD2A430103EB000F8C4E9 /* Ad Tracker Blocker Extension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 18ECD2AF30103EB000F8C4E9 /* Build configuration list for PBXNativeTarget "Ad Tracker Blocker Extension" */;
+			buildPhases = (
+				18ECD2A130103EB000F8C4E9 /* Sources */,
+				18ECD2A230103EB000F8C4E9 /* Frameworks */,
+				18ECD2A330103EB000F8C4E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Ad Tracker Blocker Extension";
+			packageProductDependencies = (
+			);
+			productName = "Ad Tracker Blocker Extension";
+			productReference = 18ECD2A530103EB000F8C4E9 /* Ad Tracker Blocker Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		18ECD28230103EAF00F8C4E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					18ECD28930103EAF00F8C4E9 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					18ECD2A430103EB000F8C4E9 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = 18ECD28530103EAF00F8C4E9 /* Build configuration list for PBXProject "Ad Tracker Blocker" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 18ECD28130103EAF00F8C4E9;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 18ECD28B30103EAF00F8C4E9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				18ECD28930103EAF00F8C4E9 /* Ad Tracker Blocker */,
+				18ECD2A430103EB000F8C4E9 /* Ad Tracker Blocker Extension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		18ECD28830103EAF00F8C4E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18ECD29430103EAF00F8C4E9 /* Icon.png in Resources */,
+				18ECD29D30103EAF00F8C4E9 /* Main.storyboard in Resources */,
+				18ECD29830103EAF00F8C4E9 /* Script.js in Resources */,
+				18ECD29230103EAF00F8C4E9 /* Main.html in Resources */,
+				18ECD29F30103EB000F8C4E9 /* Assets.xcassets in Resources */,
+				18ECD29630103EAF00F8C4E9 /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		18ECD2A330103EB000F8C4E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18ECD2C330103EB000F8C4E9 /* rules in Resources */,
+				18ECD2C430103EB000F8C4E9 /* popup.css in Resources */,
+				18ECD2BF30103EB000F8C4E9 /* background.js in Resources */,
+				18ECD2C130103EB000F8C4E9 /* icons in Resources */,
+				18ECD2C230103EB000F8C4E9 /* manifest.json in Resources */,
+				18ECD2C030103EB000F8C4E9 /* popup.html in Resources */,
+				18ECD2BE30103EB000F8C4E9 /* popup.js in Resources */,
+				D8596D45448B2AF662862FF1 /* content.js in Resources */,
+				8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		18ECD28630103EAF00F8C4E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18ECD29A30103EAF00F8C4E9 /* ViewController.swift in Sources */,
+				18ECD28E30103EAF00F8C4E9 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		18ECD2A130103EB000F8C4E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18ECD2AB30103EB000F8C4E9 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		18ECD2A830103EB000F8C4E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 18ECD2A430103EB000F8C4E9 /* Ad Tracker Blocker Extension */;
+			targetProxy = 18ECD2A730103EB000F8C4E9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		18ECD29030103EAF00F8C4E9 /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				18ECD29130103EAF00F8C4E9 /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		18ECD29B30103EAF00F8C4E9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				18ECD29C30103EAF00F8C4E9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		18ECD2AD30103EB000F8C4E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		18ECD2AE30103EB000F8C4E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		18ECD2B030103EB000F8C4E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FY75FAD98R;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ad Tracker Blocker Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ad Tracker Blocker Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.yasw.adtrackerblocker.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		18ECD2B130103EB000F8C4E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FY75FAD98R;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ad Tracker Blocker Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ad Tracker Blocker Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.yasw.adtrackerblocker.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		18ECD2B430103EB000F8C4E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FY75FAD98R;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ad Tracker Blocker/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ad Tracker Blocker";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.yasw.adtrackerblocker;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		18ECD2B530103EB000F8C4E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = FY75FAD98R;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Ad Tracker Blocker/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Ad Tracker Blocker";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.yasw.adtrackerblocker;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		18ECD28530103EAF00F8C4E9 /* Build configuration list for PBXProject "Ad Tracker Blocker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				18ECD2AD30103EB000F8C4E9 /* Debug */,
+				18ECD2AE30103EB000F8C4E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		18ECD2AF30103EB000F8C4E9 /* Build configuration list for PBXNativeTarget "Ad Tracker Blocker Extension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				18ECD2B030103EB000F8C4E9 /* Debug */,
+				18ECD2B130103EB000F8C4E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		18ECD2B330103EB000F8C4E9 /* Build configuration list for PBXNativeTarget "Ad Tracker Blocker" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				18ECD2B430103EB000F8C4E9 /* Debug */,
+				18ECD2B530103EB000F8C4E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 18ECD28230103EAF00F8C4E9 /* Project object */;
+}

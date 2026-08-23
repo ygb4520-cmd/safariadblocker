@@ -1,0 +1,6 @@
+.DS_Store
+.claude/
+scripts/logs/*.log
+**/xcuserdata/
+**/*.xcuserstate
+AdTrackerBlocker-Windows.zip

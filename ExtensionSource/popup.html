@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Ad & Tracker Blocker</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <h1>Ad &amp; Tracker Blocker</h1>
+    <div id="siteLabel" class="site-label">—</div>
+  </header>
+
+  <section class="row">
+    <label class="switch-row">
+      <span>Ads</span>
+      <input type="checkbox" id="toggle-ads" />
+    </label>
+    <label class="switch-row">
+      <span>Trackers</span>
+      <input type="checkbox" id="toggle-trackers" />
+    </label>
+    <label class="switch-row">
+      <span>Custom rules</span>
+      <input type="checkbox" id="toggle-custom" />
+    </label>
+    <label class="switch-row">
+      <span>Pop-ups / Redirects</span>
+      <input type="checkbox" id="toggle-popup-redirect" />
+    </label>
+  </section>
+
+  <section class="row">
+    <label class="switch-row pause-row">
+      <span>Pause on this site</span>
+      <input type="checkbox" id="toggle-pause" />
+    </label>
+  </section>
+
+  <section class="custom-section">
+    <h2>Custom blocking patterns</h2>
+    <p class="hint">One per line: a domain (<code>example.com</code>) or an Adblock-style filter (<code>||ads.example.com^</code>).</p>
+    <textarea id="custom-input" rows="3" placeholder="example.com"></textarea>
+    <button id="custom-add">Add</button>
+    <ul id="custom-list"></ul>
+  </section>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>org.yasw.adtrackerblocker.refresh</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/refresh_and_rebuild.sh</string>
+	</array>
+	<key>StartCalendarInterval</key>
+	<dict>
+		<key>Weekday</key>
+		<integer>0</integer>
+		<key>Hour</key>
+		<integer>9</integer>
+		<key>Minute</key>
+		<integer>0</integer>
+	</dict>
+	<key>RunAtLoad</key>
+	<false/>
+	<key>StandardOutPath</key>
+	<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/logs/launchd-stdout.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/logs/launchd-stderr.log</string>
+</dict>
+</plist>
