@@ -255,3 +255,7 @@ at 16/32/48/128px.
   this Mac via `chrome.storage.local`.
 - No automatic filter-list updates — refreshing is a manual re-run of
   `convert_filterlists.py` followed by a rebuild.
+
+## Support / Feedback
+
+Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/safariadblocker/issues
