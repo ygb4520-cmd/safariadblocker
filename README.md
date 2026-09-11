@@ -6,6 +6,27 @@ A personal-use Safari Web Extension for macOS that blocks ads and trackers via
 for managing it all. Built for local use through Xcode with a free Apple ID
 — no paid Developer Program, no App Store.
 
+## Quick start
+
+1. Open `Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj` in Xcode, sign both
+   targets with your free Apple ID ("Personal Team"), and build/run (**Cmd+R**).
+2. In Safari, turn on **Settings > Advanced > Show features for web
+   developers**, then **Develop > Allow Unsigned Extensions**.
+3. Enable the extension in **Safari > Settings > Extensions**.
+4. Click the toolbar icon and confirm ads/trackers are blocked on a test page.
+
+Full details, troubleshooting, and how it all works internally are below.
+
+## Known limitations (v1, by design)
+
+- No cosmetic/element-hiding (ad slots leave blank space rather than being
+  hidden via CSS injection) — network blocking only.
+- No iCloud sync of toggle/whitelist/custom-pattern state — it's local to
+  this Mac via `chrome.storage.local`.
+- No automatic filter-list updates — refreshing is a manual re-run of
+  `convert_filterlists.py` followed by a rebuild (or the optional weekly
+  `launchd` job described below).
+
 ## Project layout
 
 ```
@@ -36,13 +57,15 @@ your changes into `Ad Tracker Blocker Extension/Resources/` too (or just
 re-run `convert_filterlists.py`, which writes to both locations
 automatically — see below).
 
-## 1. Open the project in Xcode
+## Setup & Usage
+
+### 1. Open the project in Xcode
 
 ```bash
 open "Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj"
 ```
 
-### Sign the app with your free Apple ID (no paid Developer Program needed)
+#### Sign the app with your free Apple ID (no paid Developer Program needed)
 
 1. In Xcode, go to **Xcode > Settings > Accounts**, click **+**, and add your
    Apple ID if it isn't there already. This creates a free "Personal Team".
@@ -59,7 +82,7 @@ open "Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj"
 A free personal team can only sign apps that run locally for development —
 which is exactly what you want here.
 
-## 2. Enable unsigned extensions in Safari
+### 2. Enable unsigned extensions in Safari
 
 Personal-team (free) signed extensions aren't notarized, so Safari won't
 load them unless you explicitly allow local/unsigned extensions:
@@ -70,7 +93,7 @@ load them unless you explicitly allow local/unsigned extensions:
    **"Allow Unsigned Extensions"**. (You'll need to redo this each time you
    relaunch Safari — it's a per-launch developer setting.)
 
-## 3. Enable the extension in Safari
+### 3. Enable the extension in Safari
 
 1. With the app built and run once from Xcode (step 1), open
    **Safari > Settings > Extensions**.
@@ -83,7 +106,7 @@ The container app's window (SwiftUI) has an **"Open Safari Extensions
 Preferences…"** button that jumps straight to this screen if you'd rather
 launch it from there.
 
-## 4. Test that it's working
+### 4. Test that it's working
 
 - Click the toolbar icon to open the popup. You should see three toggles
   (**Ads**, **Trackers**, **Custom rules**), a **Pause on this site** toggle,
@@ -107,7 +130,9 @@ If nothing seems blocked at all, double check "Allow Unsigned Extensions" is
 still on (Safari resets it on relaunch) and that the extension toggle in
 Safari's Extensions settings is on.
 
-## How the categories work
+## How it works / Architecture
+
+### How the categories work
 
 - **Ads** / **Trackers**: static `declarativeNetRequest` rulesets bundled at
   build time (`rules/ads.json` / `rules/trackers.json`), toggled on/off via
@@ -124,7 +149,7 @@ Safari's Extensions settings is on.
   scoped to the current tab's domain, which overrides every block rule
   (static or dynamic) regardless of which categories are enabled.
 
-## Cosmetic cleanup (closing the blank space left by blocked ads)
+### Cosmetic cleanup (closing the blank space left by blocked ads)
 
 Network blocking alone stops an ad's request, but the page's own layout
 often still reserves space for it (an `<iframe>`/`<img>` that fails to load,
@@ -149,7 +174,7 @@ false-positive selector — if a page ever looks broken, turning off Ads/
 Trackers or using Pause on this site removes the `atb-hide-ads` class
 immediately.
 
-## Pop-up and forced-redirect protection
+### Pop-up and forced-redirect protection
 
 `content.js` also blocks two classic "hijack the tab" ad techniques:
 
@@ -164,15 +189,17 @@ immediately.
   common scam-page redirect vector; these tags get stripped before they can
   fire.
 
-Deliberately **not** blocked: `location.href` / `location.replace()`
-reassignment. Those are used by too many legitimate flows (OAuth, checkout,
-SSO redirects) to safely intercept without breaking real sites, so this
-project only targets the two vectors above. A good chunk of forced-redirect
-protection also already comes "for free" from the Ads/Trackers rulesets,
-since many redirect scripts are served from domains already in
-`rules/ads.json`.
+Not blocked, deliberately:
 
-## Refreshing the seed rule lists
+- **`location.href` / `location.replace()` reassignment** — used by too many
+  legitimate flows (OAuth, checkout, SSO redirects) to safely intercept
+  without breaking real sites, so this project only targets the two vectors
+  above.
+- A good chunk of forced-redirect protection also already comes "for free"
+  from the Ads/Trackers rulesets, since many redirect scripts are served
+  from domains already in `rules/ads.json`.
+
+### Refreshing the seed rule lists
 
 The bundled `rules/ads.json` and `rules/trackers.json` were generated once
 from the live [EasyList](https://easylist.to/easylist/easylist.txt) and
@@ -201,14 +228,16 @@ Useful flags:
 - `--offline` — reuse the previously downloaded raw lists in `scripts/raw/`
   instead of re-downloading (useful for iterating on the converter itself).
 
-The converter skips cosmetic/element-hiding rules (`##...`), regex filters,
-and any filter option it can't safely translate (e.g. `$csp`, `$redirect`,
-`$removeparam`) — these are non-goals for v1's pure network-blocking
-approach. It supports domain/tracker block rules, `@@` exceptions,
-`$domain=`, `$third-party`, and resource-type options (`$script`, `$image`,
-etc.).
+What the converter does and doesn't translate:
 
-### Automatic weekly refresh (optional)
+- Skips cosmetic/element-hiding rules (`##...`), regex filters, and any
+  filter option it can't safely translate (e.g. `$csp`, `$redirect`,
+  `$removeparam`) — these are non-goals for v1's pure network-blocking
+  approach.
+- Supports domain/tracker block rules, `@@` exceptions, `$domain=`,
+  `$third-party`, and resource-type options (`$script`, `$image`, etc.).
+
+#### Automatic weekly refresh (optional)
 
 By default rules only update when you manually run the command above. If
 you'd rather not think about it, `scripts/install_weekly_refresh.sh` installs
@@ -234,7 +263,7 @@ its own; if a week goes by and things seem stale, a manual quit-and-reopen
 of Safari (see the testing section above) forces it to pick up the rebuilt
 version.
 
-## Regenerating icons
+### Regenerating icons
 
 The toolbar icons are simple placeholder PNGs (blue "no entry" glyph)
 generated with pure Python (no ImageMagick/PIL dependency):
@@ -246,15 +275,6 @@ python3 scripts/generate_icons.py
 Feel free to replace `ExtensionSource/icons/icon-*.png` (and the copies
 under `Ad Tracker Blocker Extension/Resources/icons/`) with your own artwork
 at 16/32/48/128px.
-
-## Known limitations (v1, by design)
-
-- No cosmetic/element-hiding (ad slots leave blank space rather than being
-  hidden via CSS injection) — network blocking only.
-- No iCloud sync of toggle/whitelist/custom-pattern state — it's local to
-  this Mac via `chrome.storage.local`.
-- No automatic filter-list updates — refreshing is a manual re-run of
-  `convert_filterlists.py` followed by a rebuild.
 
 ## Support / Feedback
 
