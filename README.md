@@ -6,6 +6,17 @@ A personal-use Safari Web Extension for macOS that blocks ads and trackers via
 for managing it all. Built for local use through Xcode with a free Apple ID
 — no paid Developer Program, no App Store.
 
+## There's no download button for this one
+
+Unlike the other apps, this repo doesn't publish a compiled installer —
+both versions run from source:
+
+- **Mac (Safari)**: build it yourself via Xcode — free, ~5 minutes, no paid
+  account needed. See **Quick start** right below.
+- **Windows (Edge/Chrome)**: no build step at all — see
+  **[`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md)**
+  for how to load it directly into your browser.
+
 ## Quick start
 
 1. Open `Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj` in Xcode, sign both
