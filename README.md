@@ -1,10 +1,12 @@
 # Ad & Tracker Blocker (Safari Web Extension)
 
-A personal-use Safari Web Extension for macOS that blocks ads and trackers via
-`declarativeNetRequest`, with three independently toggleable categories
-(Ads, Trackers, Custom rules), a per-site "pause" whitelist, and a popup UI
-for managing it all. Built for local use through Xcode with a free Apple ID
-— no paid Developer Program, no App Store.
+A personal-use Safari Web Extension for macOS that blocks ads, trackers, and
+malware/phishing sites via `declarativeNetRequest`, with five independently
+toggleable categories (Ads, Trackers, Malware/Phishing, Custom rules,
+Pop-ups/Redirects), real cosmetic filtering (not just network blocking),
+YouTube ad mitigation, a per-site "pause" whitelist, and a popup UI for
+managing it all. Built for local use through Xcode with a free Apple ID —
+no paid Developer Program, no App Store.
 
 ## There's no download button for this one
 
@@ -30,13 +32,14 @@ Full details, troubleshooting, and how it all works internally are below.
 
 ## Known limitations (v1, by design)
 
-- No cosmetic/element-hiding (ad slots leave blank space rather than being
-  hidden via CSS injection) — network blocking only.
 - No iCloud sync of toggle/whitelist/custom-pattern state — it's local to
   this Mac via `chrome.storage.local`.
-- No automatic filter-list updates — refreshing is a manual re-run of
-  `convert_filterlists.py` followed by a rebuild (or the optional weekly
-  `launchd` job described below).
+- No automatic filter-list updates by default — refreshing is a manual
+  re-run of `convert_filterlists.py` followed by a rebuild, unless you opt
+  into the daily `launchd` job described below.
+- YouTube ad handling is speed-up + mute, not a true skip — see the
+  **YouTube ad mitigation** section for why, and the real limitation that
+  comes with it (YouTube's player markup can change and silently break it).
 
 ## Project layout
 
@@ -45,28 +48,34 @@ safariadblocker/
 ├── ExtensionSource/              # canonical extension source (edit these)
 │   ├── manifest.json
 │   ├── background.js             # service worker: all declarativeNetRequest logic
+│   ├── content.js                 # cosmetic filtering, pop-up/redirect protection
+│   ├── youtube-skip.js            # YouTube-only: ad speed-up/mute (see README section)
 │   ├── popup.html / popup.css / popup.js
 │   ├── icons/                    # toolbar icons
 │   └── rules/
-│       ├── ads.json              # generated from EasyList
-│       └── trackers.json         # generated from EasyPrivacy
+│       ├── ads.json               # EasyList + Peter Lowe's list
+│       ├── trackers.json          # EasyPrivacy
+│       ├── malware.json           # URLhaus + phishing-filter
+│       └── cosmetic.json          # ##/#@# element-hiding rules from all of the above
 ├── Ad Tracker Blocker/            # the Xcode project (open this in Xcode)
 │   ├── Ad Tracker Blocker.xcodeproj
 │   ├── Ad Tracker Blocker/                  # SwiftUI container app
 │   └── Ad Tracker Blocker Extension/        # Safari Web Extension target
 │       └── Resources/             # COPY of ExtensionSource — see note below
+├── WindowsExtension/               # COPY of ExtensionSource for Chrome/Edge, no build step
 └── scripts/
-    ├── convert_filterlists.py    # regenerates rules/*.json from EasyList/EasyPrivacy
+    ├── convert_filterlists.py    # regenerates rules/*.json from all upstream sources
     └── generate_icons.py         # regenerates the toolbar icon PNGs
 ```
 
 **Important:** the Xcode project was generated with Apple's
 `safari-web-extension-converter --copy-resources`, which *copies*
 `ExtensionSource/` into `Ad Tracker Blocker Extension/Resources/` rather than
-referencing it in place. If you edit `ExtensionSource/` by hand later, copy
-your changes into `Ad Tracker Blocker Extension/Resources/` too (or just
-re-run `convert_filterlists.py`, which writes to both locations
-automatically — see below).
+referencing it in place, and `WindowsExtension/` is a separate copy too. If
+you edit `ExtensionSource/` by hand later, copy your changes into both (or
+just re-run `convert_filterlists.py` for the `rules/*.json` files, which
+writes to all three locations automatically — see below; hand-edited `.js`
+files still need a manual copy).
 
 ## Setup & Usage
 
@@ -119,11 +128,12 @@ launch it from there.
 
 ### 4. Test that it's working
 
-- Click the toolbar icon to open the popup. You should see three toggles
-  (**Ads**, **Trackers**, **Custom rules**), a **Pause on this site** toggle,
-  and a text box for custom patterns.
+- Click the toolbar icon to open the popup. You should see six toggles
+  (**Ads**, **Trackers**, **Malware/Phishing**, **Custom rules**,
+  **Pop-ups/Redirects**, **YouTube Ad Skip**), a **Pause on this site**
+  toggle, and a text box for custom patterns.
 - Visit a page known to be full of ads/trackers (e.g. a news site) with all
-  three toggles on, then open Safari's **Develop > Show Web Inspector >
+  toggles on, then open Safari's **Develop > Show Web Inspector >
   Network** tab and reload — you should see many fewer third-party requests
   (doubleclick.net, google-analytics.com, etc.) compared to toggling Ads and
   Trackers off and reloading again.
@@ -145,9 +155,15 @@ Safari's Extensions settings is on.
 
 ### How the categories work
 
-- **Ads** / **Trackers**: static `declarativeNetRequest` rulesets bundled at
-  build time (`rules/ads.json` / `rules/trackers.json`), toggled on/off via
-  `chrome.declarativeNetRequest.updateEnabledRulesets`.
+- **Ads** / **Trackers** / **Malware/Phishing**: static `declarativeNetRequest`
+  rulesets bundled at build time (`rules/ads.json` / `rules/trackers.json` /
+  `rules/malware.json`), toggled on/off via
+  `chrome.declarativeNetRequest.updateEnabledRulesets`. Malware/Phishing is
+  its own category (not folded into Ads) since it's a different kind of
+  decision — sourced from [URLhaus](https://urlhaus.abuse.ch/) and
+  [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) via
+  the [malware-filter](https://gitlab.com/malware-filter) project, both
+  refreshed twice daily upstream.
 - **Custom rules**: static rulesets are immutable once packaged into the
   extension — there's no API to append rules to a bundled `.json` file at
   runtime. So custom user patterns are implemented as **dynamic rules**
@@ -163,27 +179,41 @@ Safari's Extensions settings is on.
 ### Cosmetic cleanup (closing the blank space left by blocked ads)
 
 Network blocking alone stops an ad's request, but the page's own layout
-often still reserves space for it (an `<iframe>`/`<img>` that fails to load,
-or an empty container a script never got around to filling in), which shows
-up as a blank/white box. `content.js` + `cosmetic.css` close that gap
-without a full EasyList-style cosmetic filter engine:
+often still reserves space for it, which shows up as a blank/white box.
+There are two layers here now:
 
-- `cosmetic.css` hides common ad-container patterns (`[id^="div-gpt-ad"]`,
-  `ins.adsbygoogle`, `[class*="ad-slot"]`, known ad iframe hosts, etc.),
-  scoped behind an `atb-hide-ads` class on `<html>`.
-- `content.js` toggles that class based on the current Ads/Trackers/pause
-  state, and also listens for any `<img>`/`<iframe>`/`<embed>`/`<video>`
-  that actually fails to load (which is what a blocked network request
-  looks like from the page's perspective) and collapses it — plus its
-  parent, if that parent exists solely to wrap it — so a blocked ad closes
-  up instead of leaving a blank slot.
+1. **Real cosmetic filtering** (`rules/cosmetic.json`): EasyList/EasyPrivacy
+   contain `##selector` element-hiding lines alongside their network-block
+   lines — the exact same per-site selectors uBlock Origin itself uses,
+   authored and maintained by the filter-list authors, not guessed. The
+   converter script parses these (including domain-scoped rules like
+   `youtube.com##.masthead-ad` and `#@#` exceptions) into a JSON map of
+   `{generic: [...], domains: {domain: [...]}, exceptions: {domain: [...]}}`.
+   `content.js` fetches it once per page load, resolves it against the
+   current hostname (checking the hostname and each of its parent domains,
+   so a rule for `example.com` also applies on `sub.example.com`), and
+   injects the matching selectors as chunked CSS (~200 selectors per rule,
+   so one unsupported/invalid selector can only drop its own chunk, not the
+   whole ruleset) scoped behind an `atb-hide-ads` class on `<html>`. Applied
+   in the top frame only — ad-hiding rules target the main page, not each
+   nested ad iframe, and this avoids redundant fetch/parse work on
+   frame-heavy pages.
+2. **Heuristic fallback** (`cosmetic.css` + `content.js`), for gaps the real
+   filter data doesn't cover: `cosmetic.css` hides common generic ad-container
+   patterns (`[id^="div-gpt-ad"]`, `ins.adsbygoogle`, known ad iframe hosts,
+   etc.); `content.js` also collapses any `<img>`/`<iframe>`/`<embed>`/`<video>`
+   that actually fails to load (plus its parent, if that parent exists solely
+   to wrap it) and runs a periodic sweep that collapses empty containers sized
+   like a standard IAB ad unit, and hides elements whose only content is an
+   "ADVERTISEMENT"/"Sponsored" disclosure label (climbing to the enclosing
+   slot, with guards so it can't swallow real article content).
 
-This is a heuristic, not a real cosmetic filter list, so it won't catch
-every ad container on every site, and on rare sites a legitimately-named
-element (e.g. a non-ad `.ad-hoc-banner` class) could get hit by a
-false-positive selector — if a page ever looks broken, turning off Ads/
-Trackers or using Pause on this site removes the `atb-hide-ads` class
-immediately.
+Both layers are gated behind the same Ads/Trackers/pause state via the
+`atb-hide-ads` class — if a page ever looks broken, turning off Ads/Trackers
+or using Pause on this site removes it immediately. Neither layer is
+perfect (the real filter data still won't cover every site, and the
+heuristic layer is a heuristic), but between the two, coverage should be
+close to what a mainstream ad blocker achieves for cosmetic hiding.
 
 ### Pop-up and forced-redirect protection
 
@@ -210,52 +240,108 @@ Not blocked, deliberately:
   from the Ads/Trackers rulesets, since many redirect scripts are served
   from domains already in `rules/ads.json`.
 
+### YouTube ad mitigation
+
+`youtube-skip.js` runs only on `youtube.com`/`m.youtube.com` and does
+**not** attempt network blocking — YouTube serves ads from the same domains
+as real video content, so a domain-based block would be both fragile and
+likely to break playback. Full ad-stream blocking and the anti-adblock
+detection arms race were explicitly considered and ruled out as out of
+scope for this project (too fragile, too high-maintenance for a
+personal-use tool with no auto-updating filter lists by default).
+
+What it actually does, and why, is worth spelling out precisely because the
+obvious approach doesn't work:
+
+- **Clicking the "Skip Ad" button does not work.** This was tried first and
+  verified live against a real ad: 100 synthetic `skipBtn.click()` calls
+  over 24 seconds had zero effect, and the ad played out its full natural
+  duration regardless. This isn't a selector problem — `.click()` /
+  `dispatchEvent()` always produce `isTrusted: false` events, and YouTube's
+  handler evidently ignores those. No content-script technique can fake a
+  real user click; this is a hard browser security boundary, true in every
+  browser. The skip-button click is still attempted each tick (harmless,
+  free, in case a future YouTube change ever makes it effective) but it is
+  not what the feature depends on.
+- **What does reliably work, also verified live against a real ad**: setting
+  `video.playbackRate` and `video.muted`. Property assignments aren't
+  `Event`s, so `isTrusted` doesn't apply to them. The actual mechanism is:
+  detect an ad via the `ad-showing`/`ad-interrupting` classes
+  `#movie_player` gets while one plays, then set `playbackRate` to 16 and
+  mute — a 30-second ad finishes in under 2 seconds, silently. Normal speed
+  and volume are restored the instant the ad-showing class clears, with a
+  90-second safety-net timeout in case that class ever gets stuck (so a
+  markup change can't leave real content muted/sped-up indefinitely).
+- **Real, known risk**: YouTube's player markup changes periodically (A/B
+  tests, redesigns), and the class-based ad detection above can silently
+  stop working when it does — no error, it just quietly stops helping.
+  Selectors were verified against YouTube's live markup as of writing.
+- Independently toggleable ("YouTube Ad Skip" in the popup) and respects
+  Pause on this site, same as everything else.
+
 ### Refreshing the seed rule lists
 
-The bundled `rules/ads.json` and `rules/trackers.json` were generated once
-from the live [EasyList](https://easylist.to/easylist/easylist.txt) and
-[EasyPrivacy](https://easylist.to/easylist/easyprivacy.txt) filter lists —
-they are **not** auto-updated. To pull the latest versions and regenerate:
+The bundled `rules/{ads,trackers,malware,cosmetic}.json` were generated once
+from live upstream sources — they are **not** auto-updated by default. To
+pull the latest versions and regenerate all four:
 
 ```bash
 python3 scripts/convert_filterlists.py
 ```
 
-This downloads both lists fresh, converts Adblock Plus filter syntax into
-`declarativeNetRequest` JSON rules, and writes the result to both
-`ExtensionSource/rules/` and (if present) the Xcode project's copied
-`Resources/rules/` folder, so a plain rebuild in Xcode (Cmd+B) picks up the
-change. Then rebuild/run in Xcode.
+Sources, all fetched fresh each run:
+[EasyList](https://easylist.to/easylist/easylist.txt) +
+[Peter Lowe's list](https://pgl.yoyo.org/adservers/) → `ads.json`;
+[EasyPrivacy](https://easylist.to/easylist/easyprivacy.txt) → `trackers.json`;
+[URLhaus](https://urlhaus.abuse.ch/) +
+[phishing-filter](https://gitlab.com/malware-filter/phishing-filter) →
+`malware.json`; the `##`/`#@#` element-hiding lines from all of the above →
+`cosmetic.json`. Writes to `ExtensionSource/rules/`, the Xcode project's
+copied `Resources/rules/`, and `WindowsExtension/rules/` — so a plain
+rebuild in Xcode (Cmd+B) or just reloading the unpacked Chrome/Edge folder
+picks up the change.
 
 Useful flags:
 
-- `--max-rules N` — cap rules per category (default `20000`). Safari's
-  `declarativeNetRequest` static-ruleset limits can change between OS
-  versions; 20,000/category is comfortably under the commonly documented
-  `GUARANTEED_MINIMUM_STATIC_RULES` floor (30,000), but if you raise this,
-  check current limits in Apple's WebExtensions documentation first. Safari
-  silently ignores rules beyond its cap rather than failing to load, so an
-  overly high number degrades gracefully but wastes ruleset space.
+- `--max-rules N` — cap rules for `ads.json`/`trackers.json` each (default
+  `20000`). Important: `declarativeNetRequest`'s `GUARANTEED_MINIMUM_STATIC_RULES`
+  (30,000) is a **combined** total across every enabled static ruleset, not
+  per-ruleset — with 3 rulesets (ads/trackers/malware) enabled by default,
+  raising this significantly pushes the combined total past what's
+  strictly guaranteed and into the browser's shared "extra" pool. The
+  current defaults (20000 + 20000 + 10000 malware) have been tested working
+  in practice; raise with the combined total in mind, and check current
+  limits in Apple's WebExtensions documentation first.
+- `--max-malware-rules N` — cap for `malware.json` (default `10000`,
+  deliberately smaller — URLhaus/phishing-filter are current-threats-only
+  lists refreshed twice daily upstream, not broad EasyList-scale coverage).
+- `--max-cosmetic-rules N` — cap combined generic + domain-scoped cosmetic
+  selectors (default `40000`). Not subject to DNR limits (it's just CSS
+  selectors in a JSON file), kept bounded for bundle size and per-page
+  injection cost.
 - `--offline` — reuse the previously downloaded raw lists in `scripts/raw/`
   instead of re-downloading (useful for iterating on the converter itself).
 
-What the converter does and doesn't translate:
+What the converter does and doesn't translate (network rules):
 
-- Skips cosmetic/element-hiding rules (`##...`), regex filters, and any
-  filter option it can't safely translate (e.g. `$csp`, `$redirect`,
-  `$removeparam`) — these are non-goals for v1's pure network-blocking
-  approach.
+- Skips regex filters and any filter option it can't safely translate (e.g.
+  `$csp`, `$redirect`, `$removeparam`).
 - Supports domain/tracker block rules, `@@` exceptions, `$domain=`,
   `$third-party`, and resource-type options (`$script`, `$image`, etc.).
 
-#### Automatic weekly refresh (optional)
+Cosmetic rules (`##`/`#@#`) are parsed separately (see **Cosmetic cleanup**
+above) — `#?#`/`#$#` (extended-CSS/snippets) are skipped, since they use
+syntax plain CSS can't express safely.
+
+#### Automatic daily refresh (optional)
 
 By default rules only update when you manually run the command above. If
-you'd rather not think about it, `scripts/install_weekly_refresh.sh` installs
-a `launchd` user agent (macOS's built-in scheduler) that runs every Sunday at
-9:00 AM: it re-downloads EasyList/EasyPrivacy, regenerates both rule files,
-and rebuilds the app with `xcodebuild` — all unattended, using the same
-signing settings already configured in Xcode.
+you'd rather not think about it, `scripts/install_weekly_refresh.sh` (name
+predates the switch from weekly to daily) installs a `launchd` user agent
+(macOS's built-in scheduler) that runs every day at 9:00 AM: it re-downloads
+all four sources above, regenerates all four rule files, and rebuilds the
+app with `xcodebuild` — all unattended, using the same signing settings
+already configured in Xcode.
 
 ```bash
 scripts/install_weekly_refresh.sh    # installs it
@@ -270,7 +356,7 @@ failure.
 **What this does not do:** quit or relaunch Safari. Doing that unattended
 would kill whatever tabs you have open, so the job only refreshes the rules
 and rebuilds the app binary. Safari usually notices the updated extension on
-its own; if a week goes by and things seem stale, a manual quit-and-reopen
+its own; if a day goes by and things seem stale, a manual quit-and-reopen
 of Safari (see the testing section above) forces it to pick up the rebuilt
 version.
 

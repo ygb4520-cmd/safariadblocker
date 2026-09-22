@@ -1,8 +1,9 @@
 // Background service worker: owns all declarativeNetRequest state.
 //
 // Categories:
-//  - "ads" / "trackers": static rulesets bundled at build time (rules/ads.json,
-//    rules/trackers.json). Toggled on/off via updateEnabledRulesets.
+//  - "ads" / "trackers" / "malware": static rulesets bundled at build time
+//    (rules/ads.json, rules/trackers.json, rules/malware.json). Toggled
+//    on/off via updateEnabledRulesets.
 //  - "custom": static rulesets are immutable once packaged, so user-added
 //    patterns can't be appended to a bundled rules/custom.json at runtime.
 //    Instead, custom rules are implemented as *dynamic* rules
@@ -20,10 +21,11 @@ const CUSTOM_RULE_ID_END = 4999; // inclusive upper bound reserved for custom-pa
 const PAUSE_RULE_ID_START = 5000; // reserved range for per-site pause/allow rules
 
 const DEFAULT_STATE = {
-  rulesetsEnabled: { ads: true, trackers: true, custom: true },
+  rulesetsEnabled: { ads: true, trackers: true, malware: true, custom: true },
   customPatterns: [], // array of raw pattern strings, e.g. "example.com" or "||ads.example.com^"
   pausedDomains: [], // array of hostnames currently whitelisted
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
+  youtubeAdSkip: true, // youtube-skip.js: auto-click Skip Ad + mute through unskippable ads
 };
 
 async function getState() {
@@ -47,7 +49,7 @@ function patternToUrlFilter(pattern) {
 async function syncStaticRulesets(state) {
   const enable = [];
   const disable = [];
-  for (const id of ["ads", "trackers"]) {
+  for (const id of ["ads", "trackers", "malware"]) {
     (state.rulesetsEnabled[id] ? enable : disable).push(id);
   }
   await api.declarativeNetRequest.updateEnabledRulesets({
@@ -208,6 +210,12 @@ async function handleMessage(message) {
       // Purely a content.js behavior toggle -- no declarativeNetRequest
       // rules involved, so there's nothing to sync beyond persisting it.
       await setState({ popupRedirectProtection: message.enabled });
+      return { ok: true };
+    }
+
+    case "SET_YOUTUBE_SKIP_ENABLED": {
+      // Same as above -- youtube-skip.js reads this straight from storage.
+      await setState({ youtubeAdSkip: message.enabled });
       return { ok: true };
     }
 

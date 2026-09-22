@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ad & Tracker Blocker",
   "version": "1.0",
-  "description": "Blocks ads and trackers with independently toggleable categories, per-site pause, and custom user rules.",
+  "description": "Blocks ads, trackers, and malware/phishing sites with independently toggleable categories, real cosmetic filtering, per-site pause, and custom user rules.",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
@@ -19,6 +19,11 @@
       "js": ["content.js"],
       "all_frames": true,
       "run_at": "document_start"
+    },
+    {
+      "matches": ["*://www.youtube.com/*", "*://m.youtube.com/*"],
+      "js": ["youtube-skip.js"],
+      "run_at": "document_idle"
     }
   ],
   "action": {
@@ -38,6 +43,12 @@
   "host_permissions": [
     "<all_urls>"
   ],
+  "web_accessible_resources": [
+    {
+      "resources": ["rules/cosmetic.json"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -49,6 +60,11 @@
         "id": "trackers",
         "enabled": true,
         "path": "rules/trackers.json"
+      },
+      {
+        "id": "malware",
+        "enabled": true,
+        "path": "rules/malware.json"
       }
     ]
   }

@@ -45,8 +45,9 @@ click the pin icon so it's always visible.
 Same idea as the Mac version:
 
 - Open the popup (toolbar icon) — you should see **Ads**, **Trackers**,
-  **Custom rules**, **Pop-ups / Redirects** toggles, **Pause on this site**,
-  and the custom-pattern box.
+  **Malware / Phishing**, **Custom rules**, **Pop-ups / Redirects**, and
+  **YouTube Ad Skip** toggles, **Pause on this site**, and the
+  custom-pattern box.
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**
   tab, reload. With everything on, you should see far fewer third-party
   requests (`doubleclick.net`, `google-analytics.com`, etc.) than with
@@ -54,7 +55,7 @@ Same idea as the Mac version:
 
 ## Refreshing the rules later
 
-`rules/ads.json` / `rules/trackers.json` here are the exact same files
+`rules/{ads,trackers,malware,cosmetic}.json` here are the exact same files
 generated on the Mac side — a snapshot, not auto-updating. If you want this
 Windows copy to refresh independently later:
 
@@ -64,10 +65,10 @@ Windows copy to refresh independently later:
    wasn't included in this package since it's a dev tool, not part of the
    extension itself).
 3. Run `python convert_filterlists.py` from a folder containing this
-   `rules/` directory — it'll download fresh EasyList/EasyPrivacy and
-   regenerate both files. See the main project's `README.md` for details;
-   the script is plain Python with no OS-specific code, so it runs the same
-   way on Windows.
+   `rules/` directory — it'll download fresh EasyList/EasyPrivacy/Peter
+   Lowe's list/URLhaus/phishing-filter and regenerate all four files. See
+   the main project's `README.md` for details; the script is plain Python
+   with no OS-specific code, so it runs the same way on Windows.
 
 ## Differences from the Mac/Safari version
 
@@ -75,5 +76,6 @@ Windows copy to refresh independently later:
   whole category of setup is Safari-specific and doesn't apply here.
 - Nothing syncs between the Mac and Windows copies — separate browsers,
   separate extension storage, independent toggle/rule state on each.
-- Everything else (what gets blocked, the popup, the cosmetic ad-slot
-  cleanup, pop-up/redirect protection) is identical — same source files.
+- Everything else (what gets blocked, the popup, real cosmetic filtering,
+  the heuristic ad-slot cleanup, pop-up/redirect protection, YouTube ad
+  mitigation) is identical — same source files.

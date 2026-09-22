@@ -7,12 +7,10 @@
 	<key>ProgramArguments</key>
 	<array>
 		<string>/bin/bash</string>
-		<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/refresh_and_rebuild.sh</string>
+		<string>/Users/tziporabrownstein/claude apps/Extensions/safariadblocker/scripts/refresh_and_rebuild.sh</string>
 	</array>
 	<key>StartCalendarInterval</key>
 	<dict>
-		<key>Weekday</key>
-		<integer>0</integer>
 		<key>Hour</key>
 		<integer>9</integer>
 		<key>Minute</key>
@@ -21,8 +19,8 @@
 	<key>RunAtLoad</key>
 	<false/>
 	<key>StandardOutPath</key>
-	<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/logs/launchd-stdout.log</string>
+	<string>/Users/tziporabrownstein/claude apps/Extensions/safariadblocker/scripts/logs/launchd-stdout.log</string>
 	<key>StandardErrorPath</key>
-	<string>/Users/tziporabrownstein/claude apps:extensions/safariadblocker/scripts/logs/launchd-stderr.log</string>
+	<string>/Users/tziporabrownstein/claude apps/Extensions/safariadblocker/scripts/logs/launchd-stderr.log</string>
 </dict>
 </plist>

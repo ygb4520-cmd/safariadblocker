@@ -25,6 +25,12 @@
 //      disclosure label and loading placeholder forever. This finds that
 //      label text directly and hides its enclosing slot, with guards so it
 //      can't climb into and hide real article content.
+//   6. Real cosmetic filtering: rules/cosmetic.json (built by
+//      scripts/convert_filterlists.py from EasyList/EasyPrivacy's own ##
+//      element-hiding lines) gets fetched once, resolved against the
+//      current hostname, and injected as scoped CSS -- replacing guesswork
+//      with the filter-list authors' own per-site selectors. Top frame
+//      only: ad-hiding targets the main page, not each nested ad iframe.
 
 (function () {
   const api = window.browser || window.chrome;
@@ -199,4 +205,67 @@
     childList: true,
     subtree: true,
   });
+
+  // --- Real cosmetic filtering (rules/cosmetic.json) ------------------
+  // Scoped under html.atb-hide-ads, same as cosmetic.css, so it's inert
+  // whenever Ads/Trackers are off or the site is paused -- no separate
+  // enable check needed here.
+  const COSMETIC_CHUNK_SIZE = 200;
+
+  function hostnameSuffixes(hostname) {
+    const parts = hostname.split(".");
+    const suffixes = [];
+    for (let i = 0; i < parts.length - 1; i++) {
+      suffixes.push(parts.slice(i).join("."));
+    }
+    return suffixes;
+  }
+
+  function buildCosmeticCss(data) {
+    const suffixes = hostnameSuffixes(location.hostname);
+    const excluded = new Set();
+    for (const suffix of suffixes) {
+      for (const sel of (data.exceptions && data.exceptions[suffix]) || []) excluded.add(sel);
+    }
+
+    const selectors = new Set();
+    for (const sel of data.generic || []) {
+      if (!excluded.has(sel)) selectors.add(sel);
+    }
+    for (const suffix of suffixes) {
+      for (const sel of (data.domains && data.domains[suffix]) || []) selectors.add(sel);
+    }
+
+    // Chunked rather than one giant selector list: if any single selector
+    // is invalid or uses a pseudo-class this browser doesn't support, only
+    // its chunk (<=200 selectors) is dropped by the CSS parser, not the
+    // other ~150 chunks.
+    const list = [...selectors];
+    let css = "";
+    for (let i = 0; i < list.length; i += COSMETIC_CHUNK_SIZE) {
+      const scoped = list
+        .slice(i, i + COSMETIC_CHUNK_SIZE)
+        .map((sel) => `html.atb-hide-ads ${sel}`)
+        .join(",");
+      css += `${scoped}{display:none!important}`;
+    }
+    return css;
+  }
+
+  function loadCosmeticRules() {
+    fetch(api.runtime.getURL("rules/cosmetic.json"))
+      .then((r) => r.json())
+      .then((data) => {
+        const css = buildCosmeticCss(data);
+        if (!css) return;
+        const style = document.createElement("style");
+        style.textContent = css;
+        (document.head || document.documentElement).appendChild(style);
+      })
+      .catch(() => {}); // best-effort; a missing/broken file shouldn't break the page
+  }
+
+  if (window.top === window.self) {
+    loadCosmeticRules();
+  }
 })();

@@ -2,8 +2,10 @@ const api = globalThis.browser || globalThis.chrome;
 
 const toggleAds = document.getElementById("toggle-ads");
 const toggleTrackers = document.getElementById("toggle-trackers");
+const toggleMalware = document.getElementById("toggle-malware");
 const toggleCustom = document.getElementById("toggle-custom");
 const togglePopupRedirect = document.getElementById("toggle-popup-redirect");
+const toggleYoutubeSkip = document.getElementById("toggle-youtube-skip");
 const togglePause = document.getElementById("toggle-pause");
 const siteLabel = document.getElementById("siteLabel");
 const customInput = document.getElementById("custom-input");
@@ -40,8 +42,10 @@ async function init() {
 
   toggleAds.checked = !!state.rulesetsEnabled.ads;
   toggleTrackers.checked = !!state.rulesetsEnabled.trackers;
+  toggleMalware.checked = state.rulesetsEnabled.malware !== false;
   toggleCustom.checked = !!state.rulesetsEnabled.custom;
   togglePopupRedirect.checked = state.popupRedirectProtection !== false;
+  toggleYoutubeSkip.checked = state.youtubeAdSkip !== false;
 
   if (activeHostname) {
     siteLabel.textContent = activeHostname;
@@ -63,12 +67,20 @@ toggleTrackers.addEventListener("change", () => {
   send({ type: "SET_RULESET_ENABLED", ruleset: "trackers", enabled: toggleTrackers.checked });
 });
 
+toggleMalware.addEventListener("change", () => {
+  send({ type: "SET_RULESET_ENABLED", ruleset: "malware", enabled: toggleMalware.checked });
+});
+
 toggleCustom.addEventListener("change", () => {
   send({ type: "SET_RULESET_ENABLED", ruleset: "custom", enabled: toggleCustom.checked });
 });
 
 togglePopupRedirect.addEventListener("change", () => {
   send({ type: "SET_POPUP_PROTECTION_ENABLED", enabled: togglePopupRedirect.checked });
+});
+
+toggleYoutubeSkip.addEventListener("change", () => {
+  send({ type: "SET_YOUTUBE_SKIP_ENABLED", enabled: toggleYoutubeSkip.checked });
 });
 
 togglePause.addEventListener("change", () => {

@@ -26,6 +26,7 @@
 		18ECD2C430103EB000F8C4E9 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 18ECD2BD30103EB000F8C4E9 /* popup.css */; };
 		D8596D45448B2AF662862FF1 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 21B7E98C2B16455541850AB8 /* content.js */; };
 		8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */ = {isa = PBXBuildFile; fileRef = ED83A101588AD8A646F8475A /* cosmetic.css */; };
+		28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */ = {isa = PBXBuildFile; fileRef = EA87E66B6E2A412D5D11C12D /* youtube-skip.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +76,7 @@
 		18ECD2BD30103EB000F8C4E9 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = Resources/popup.css; sourceTree = "<group>"; };
 		21B7E98C2B16455541850AB8 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
 		ED83A101588AD8A646F8475A /* cosmetic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = cosmetic.css; path = Resources/cosmetic.css; sourceTree = "<group>"; };
+		EA87E66B6E2A412D5D11C12D /* youtube-skip.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "youtube-skip.js"; path = "Resources/youtube-skip.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -159,6 +161,7 @@
 				18ECD2BD30103EB000F8C4E9 /* popup.css */,
 				21B7E98C2B16455541850AB8 /* content.js */,
 				ED83A101588AD8A646F8475A /* cosmetic.css */,
+				EA87E66B6E2A412D5D11C12D /* youtube-skip.js */,
 			);
 			name = Resources;
 			path = "Ad Tracker Blocker Extension";
@@ -272,6 +275,7 @@
 				18ECD2BE30103EB000F8C4E9 /* popup.js in Resources */,
 				D8596D45448B2AF662862FF1 /* content.js in Resources */,
 				8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */,
+				28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
