@@ -70,6 +70,15 @@ Windows copy to refresh independently later:
    the main project's `README.md` for details; the script is plain Python
    with no OS-specific code, so it runs the same way on Windows.
 
+## Credits
+
+The `rules/*.json` files bundled here are generated from third-party filter
+lists, not written by this project: [EasyList](https://easylist.to/) and
+[EasyPrivacy](https://easylist.to/) (ads/trackers/cosmetic hiding),
+[Peter Lowe's list](https://pgl.yoyo.org/adservers/), and
+[URLhaus](https://urlhaus.abuse.ch/) + [phishing-filter](https://gitlab.com/malware-filter/phishing-filter)
+(malware/phishing). See the main project's `README.md` for more detail.
+
 ## Differences from the Mac/Safari version
 
 - No container app, no signing, no "Allow Unsigned Extensions" step — that

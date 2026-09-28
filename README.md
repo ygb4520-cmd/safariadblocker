@@ -373,6 +373,22 @@ Feel free to replace `ExtensionSource/icons/icon-*.png` (and the copies
 under `Ad Tracker Blocker Extension/Resources/icons/`) with your own artwork
 at 16/32/48/128px.
 
+## Credits
+
+This extension's own code is original, but the blocking data it ships with
+is not — the network and cosmetic (element-hiding) rules in `rules/` are
+derived from third-party filter lists maintained by their own communities,
+free to use under their respective licenses:
+
+- [EasyList](https://easylist.to/) — general ad blocking
+- [EasyPrivacy](https://easylist.to/) — tracker blocking
+- [Peter Lowe's Ad and tracking server list](https://pgl.yoyo.org/adservers/)
+- [URLhaus](https://urlhaus.abuse.ch/) (abuse.ch) — malware URLs
+- [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) — phishing URLs
+
+See each project's own site for its current license terms before
+redistributing the generated `rules/*.json` files outside this project.
+
 ## Support / Feedback
 
 Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/safariadblocker/issues
