@@ -53,6 +53,7 @@ safariadblocker/
 │   ├── content.js                 # cosmetic filtering, pop-up/redirect protection
 │   ├── youtube-skip.js            # YouTube-only: ad speed-up/mute (see README section)
 │   ├── popup.html / popup.css / popup.js
+│   ├── stats.html / stats.js      # the small "How we're doing" window opened from the popup
 │   ├── icons/                    # toolbar icons
 │   └── rules/
 │       ├── ads.json               # EasyList + Peter Lowe's list
@@ -314,6 +315,31 @@ or using Pause on this site removes it immediately. Neither layer is
 perfect (the real filter data still won't cover every site, and the
 heuristic layer is a heuristic), but between the two, coverage should be
 close to what a mainstream ad blocker achieves for cosmetic hiding.
+
+### "See how we're doing" stats window
+
+The popup's **See how we're doing** link closes the popup and opens a
+separate small window (`stats.html`, via `windows.create` with
+`type: "popup"`) showing: the blocked-request count for the page you were
+on, each category's on/off state with its rule count and how long ago it
+was refreshed (from `rules/meta.json` — the popup's single "oldest file"
+line, broken out per file), and counts of your own custom patterns, hidden
+elements, and paused sites.
+
+Two details worth knowing: the new window's own "active tab" is itself, so
+`background.js` passes the originating tab id and hostname through the URL
+when it opens the window. And the blocked count is read back from the
+toolbar badge text (the browser's own automatic per-tab count) rather than
+`getMatchedRules`, which would need an extra permission and is restricted
+to unpacked extensions in Chrome — if a browser doesn't report a count, it
+shows a dash rather than a made-up zero.
+
+**Why several popup buttons go through `background.js`:** the popup's JS
+context can be torn down by `window.close()` before an in-flight message
+actually reaches the browser's messaging layer, silently dropping it. Both
+this and the element picker's button send a message to `background.js`
+(long-lived, unaffected by the popup closing), wait for its response, and
+only then close.
 
 ### Element picker (hide anything yourself, no CSS needed)
 

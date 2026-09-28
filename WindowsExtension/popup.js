@@ -22,6 +22,7 @@ const importFileInput = document.getElementById("import-file-input");
 const importStatus = document.getElementById("importStatus");
 const pickElementBtn = document.getElementById("pick-element");
 const cosmeticList = document.getElementById("cosmetic-list");
+const openStatsBtn = document.getElementById("open-stats");
 
 let activeHostname = null;
 let customRuleCap = Infinity;
@@ -246,13 +247,24 @@ importFileInput.addEventListener("change", async () => {
 });
 
 // The picker itself runs in the page's own content script, not here -- the
-// popup can't reach into page DOM directly. Send it the activation message,
-// then close: the popup would otherwise sit on top of the page the user
-// needs to click on.
+// popup can't reach into page DOM directly. Relayed through background.js
+// rather than calling tabs.sendMessage directly from here: a popup's JS
+// context can be torn down by window.close() before an in-flight message
+// actually reaches the browser's messaging layer, silently dropping it.
+// background.js is long-lived and isn't affected by the popup closing, so
+// routing the relay through it (and waiting for its response before we
+// close) avoids that race.
 pickElementBtn.addEventListener("click", async () => {
-  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
-  if (!tab) return;
-  await api.tabs.sendMessage(tab.id, { type: "START_ELEMENT_PICKER" }).catch(() => {});
+  await send({ type: "REQUEST_ELEMENT_PICKER" });
+  window.close();
+});
+
+// Same reasoning as the picker above: the window is opened from
+// background.js (which also records which tab/site the user was on, since
+// the new window's own "active tab" would just be itself), then the popup
+// closes and the small stats window takes its place.
+openStatsBtn.addEventListener("click", async () => {
+  await send({ type: "OPEN_STATS_WINDOW" });
   window.close();
 });
 

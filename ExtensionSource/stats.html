@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>How we're doing</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body class="stats-body">
+  <header>
+    <h1>How we're doing</h1>
+    <div id="statsSite" class="site-label">—</div>
+  </header>
+
+  <section class="row">
+    <div class="stat-big">
+      <div id="blockedCount" class="stat-number">—</div>
+      <div class="stat-caption">blocked on this page</div>
+    </div>
+  </section>
+
+  <section class="custom-section">
+    <h2>Categories</h2>
+    <table class="stats-table" id="categoryTable"></table>
+  </section>
+
+  <section class="custom-section">
+    <h2>Your own rules</h2>
+    <table class="stats-table" id="ownTable"></table>
+  </section>
+
+  <script src="stats.js"></script>
+</body>
+</html>

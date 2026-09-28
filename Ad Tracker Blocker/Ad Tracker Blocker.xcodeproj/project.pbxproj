@@ -27,6 +27,8 @@
 		D8596D45448B2AF662862FF1 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 21B7E98C2B16455541850AB8 /* content.js */; };
 		8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */ = {isa = PBXBuildFile; fileRef = ED83A101588AD8A646F8475A /* cosmetic.css */; };
 		28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */ = {isa = PBXBuildFile; fileRef = EA87E66B6E2A412D5D11C12D /* youtube-skip.js */; };
+		AAD8163C73048B63C2531933 /* stats.html in Resources */ = {isa = PBXBuildFile; fileRef = 6651E6C8F6889CE81FAC08B5 /* stats.html */; };
+		CFFEC6DDC2010A7356527C20 /* stats.js in Resources */ = {isa = PBXBuildFile; fileRef = 5EFA5189F48522C02E1A7B38 /* stats.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +79,8 @@
 		21B7E98C2B16455541850AB8 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
 		ED83A101588AD8A646F8475A /* cosmetic.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = cosmetic.css; path = Resources/cosmetic.css; sourceTree = "<group>"; };
 		EA87E66B6E2A412D5D11C12D /* youtube-skip.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "youtube-skip.js"; path = "Resources/youtube-skip.js"; sourceTree = "<group>"; };
+		6651E6C8F6889CE81FAC08B5 /* stats.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "stats.html"; path = "Resources/stats.html"; sourceTree = "<group>"; };
+		5EFA5189F48522C02E1A7B38 /* stats.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "stats.js"; path = "Resources/stats.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +166,8 @@
 				21B7E98C2B16455541850AB8 /* content.js */,
 				ED83A101588AD8A646F8475A /* cosmetic.css */,
 				EA87E66B6E2A412D5D11C12D /* youtube-skip.js */,
+				6651E6C8F6889CE81FAC08B5 /* stats.html */,
+				5EFA5189F48522C02E1A7B38 /* stats.js */,
 			);
 			name = Resources;
 			path = "Ad Tracker Blocker Extension";
@@ -276,6 +282,8 @@
 				D8596D45448B2AF662862FF1 /* content.js in Resources */,
 				8966386D0C3A2E95AA1CBC2E /* cosmetic.css in Resources */,
 				28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */,
+				AAD8163C73048B63C2531933 /* stats.html in Resources */,
+				CFFEC6DDC2010A7356527C20 /* stats.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
