@@ -6,7 +6,7 @@ toggleable categories (Ads, Trackers, Malware/Phishing, Annoyances,
 Anti-Adblock, Custom rules, Pop-ups/Redirects, Referrer Privacy), real
 cosmetic filtering (not just network blocking) plus a point-and-click element
 picker for hiding anything else yourself, YouTube ad mitigation, a per-site
-"pause" whitelist, settings export/import, a live blocked-request counter,
+"pause" whitelist, settings export/import,
 and a popup UI for managing it all. Built for local use through Xcode with a
 free Apple ID — no paid Developer Program, no App Store.
 
@@ -161,12 +161,9 @@ launch it from there.
   Skip**, **Referrer Privacy**), a **Pause on this site** toggle, a text box
   for custom patterns with a pattern counter underneath, and **Export
   settings** / **Import settings** buttons at the bottom.
-- Visit any page and confirm a number appears on the toolbar icon's badge —
-  that's the browser's own live count of blocked requests on that page.
-  Turn on **Pause on this site**: the badge number should stop updating
-  (nothing's being blocked there anymore) and the icon itself should switch
-  to a grayed-out version; switch to a different, non-paused tab and
-  confirm the icon goes back to normal.
+- Turn on **Pause on this site**: the toolbar icon itself should switch to
+  a grayed-out version; switch to a different, non-paused tab and confirm
+  the icon goes back to normal.
 - Click **Export settings**, confirm a `.json` file downloads, then click
   **Import settings** and pick that same file back — the popup should
   refresh with everything unchanged (a no-op round trip is the easiest way
@@ -260,15 +257,11 @@ digging through logs:
 - **Paused-state icon**: the toolbar icon itself switches to a grayed-out
   variant whenever the *current tab's* site is paused, so "did I leave this
   paused?" is answerable at a glance instead of having to open the popup.
-  Updates automatically as you switch tabs or navigate. This is an icon
-  swap rather than badge text deliberately — the badge text slot is owned
-  by the blocked-request counter below, and the two would fight over it if
-  both tried to use badge text.
-- **Blocked-request counter**: the browser's own built-in per-tab count of
-  matched block rules is shown as the badge number on the toolbar icon —
-  turned on once via `declarativeNetRequest.setExtensionActionOptions`, no
-  extension-side bookkeeping needed; the browser keeps it live as you
-  browse.
+  Updates automatically as you switch tabs or navigate. (There is
+  deliberately no blocked-count number on the icon: one was tried and
+  removed. `background.js` explicitly turns the browser's automatic badge
+  count *off* on startup, since that setting persists across restarts and
+  would otherwise stay on for installs that had it.)
 - **"Rules updated" line in the popup**: shows how long ago the block lists
   were last successfully refreshed (e.g. "Rules updated 3 hrs ago"), read
   from `rules/meta.json` (written by `convert_filterlists.py`, see below).
@@ -320,19 +313,15 @@ close to what a mainstream ad blocker achieves for cosmetic hiding.
 
 The popup's **See how we're doing** link closes the popup and opens a
 separate small window (`stats.html`, via `windows.create` with
-`type: "popup"`) showing: the blocked-request count for the page you were
-on, each category's on/off state with its rule count and how long ago it
-was refreshed (from `rules/meta.json` — the popup's single "oldest file"
+`type: "popup"`) showing each category's on/off state with its rule count
+and how long ago it was refreshed (from `rules/meta.json` — the popup's single "oldest file"
 line, broken out per file), and counts of your own custom patterns, hidden
 elements, and paused sites.
 
-Two details worth knowing: the new window's own "active tab" is itself, so
-`background.js` passes the originating tab id and hostname through the URL
-when it opens the window. And the blocked count is read back from the
-toolbar badge text (the browser's own automatic per-tab count) rather than
-`getMatchedRules`, which would need an extra permission and is restricted
-to unpacked extensions in Chrome — if a browser doesn't report a count, it
-shows a dash rather than a made-up zero.
+The new window's own "active tab" is itself, so `background.js` passes the
+hostname of the site you were on through the URL when it opens the window.
+(A per-page blocked count used to be here too, read from the toolbar badge
+text; it went away with the badge counter.)
 
 **Why several popup buttons go through `background.js`:** the popup's JS
 context can be torn down by `window.close()` before an in-flight message

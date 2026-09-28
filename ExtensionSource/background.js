@@ -198,12 +198,10 @@ function hostnameFromUrl(url) {
 
 // Toolbar icon: swaps to a grayed-out variant on tabs whose site is paused,
 // so "did I leave this paused?" is answerable without opening the popup.
-// This is an ICON swap, not a badge-text change, deliberately -- the badge
-// TEXT slot is owned by setExtensionActionOptions' automatic per-tab
-// block-count display (see enableBlockCountBadge below), which is a global
-// on/off switch with no documented way to exempt one tab. Fighting over
-// badge text between "show the count" and "show a pause glyph" would race;
-// separating them onto icon vs. badge avoids that entirely.
+// This is an ICON swap rather than badge text: the blocked-count badge this
+// was designed alongside has since been removed (see disableBlockCountBadge
+// below), but a grayed-out icon is a clearer "paused" signal than a tiny
+// glyph anyway.
 // Icon changes are per-tab (via the tabId option), so switching tabs or
 // navigating within a tab has to actively refresh it -- there's no
 // automatic "current tab" concept in the action API.
@@ -223,18 +221,18 @@ async function updateBadgeForTab(tabId, url) {
   }
 }
 
-// Turns on the browser's own automatic "badge text = number of requests
-// blocked on this page" display. One-time, extension-wide setting (not
-// per-tab) -- the browser updates it live as declarativeNetRequest rules
-// match, so there's nothing for background.js to maintain here.
-async function enableBlockCountBadge() {
+// Explicitly turns OFF the browser's automatic "badge text = blocked count"
+// display. It was on briefly and the setting persists across restarts, so
+// simply not calling it isn't enough for installs that already had it on --
+// switch it off and clear any leftover text.
+async function disableBlockCountBadge() {
   try {
     await api.declarativeNetRequest.setExtensionActionOptions({
-      displayActionCountAsBadgeText: true,
+      displayActionCountAsBadgeText: false,
     });
+    await api.action.setBadgeText({ text: "" });
   } catch {
-    // Not available on this browser/version -- badge just stays blank, no
-    // functional loss.
+    // Not available on this browser/version -- nothing to turn off.
   }
 }
 
@@ -261,14 +259,14 @@ api.runtime.onInstalled.addListener(async () => {
   }
   await resetDynamicRulesStore();
   await syncAll();
-  await enableBlockCountBadge();
+  await disableBlockCountBadge();
   await updateBadgeForActiveTab();
 });
 
 api.runtime.onStartup?.addListener(async () => {
   await resetDynamicRulesStore();
   await syncAll();
-  await enableBlockCountBadge();
+  await disableBlockCountBadge();
   await updateBadgeForActiveTab();
 });
 
@@ -345,7 +343,6 @@ async function handleMessage(message) {
     case "OPEN_STATS_WINDOW": {
       const [tab] = await api.tabs.query({ active: true, currentWindow: true });
       const query = new URLSearchParams();
-      if (tab?.id != null) query.set("tabId", String(tab.id));
       const host = tab?.url ? hostnameFromUrl(tab.url) : null;
       if (host) query.set("host", host);
       await api.windows.create({

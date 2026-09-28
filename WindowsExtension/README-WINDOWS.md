@@ -52,14 +52,12 @@ Same idea as the Mac version:
   hide** button with its own list of custom hidden elements, and **Export
   settings** / **Import settings** buttons.
 - Click **See how we're doing** — the popup should close and a small
-  window with your blocked count, per-category rule counts, and custom-rule
+  window with per-category rule counts and custom-rule
   totals should open.
 - Click **Pick element to hide**, hover over something on the page (a red
   outline should follow your cursor), click it, and confirm **Hide it** in
   the bar that appears at the bottom — see the main `README.md`'s "Element
   picker" section for the full details.
-- Visit any page and confirm a number appears on the toolbar icon's badge
-  (the browser's own live count of blocked requests on that page).
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**
   tab, reload. With everything on, you should see far fewer third-party
   requests (`doubleclick.net`, `google-analytics.com`, etc.) than with

@@ -1,10 +1,9 @@
 const api = globalThis.browser || globalThis.chrome;
 
 // This page opens in its own small window, so "the active tab" here would be
-// this window itself -- background.js passes the tab/site the user was
-// actually on via the URL when it opens us.
+// this window itself -- background.js passes the site the user was actually
+// on via the URL when it opens us.
 const params = new URLSearchParams(location.search);
-const originTabId = params.get("tabId") ? Number(params.get("tabId")) : null;
 const originHost = params.get("host") || null;
 
 const CATEGORIES = [
@@ -46,30 +45,13 @@ async function loadMeta() {
   }
 }
 
-// The browser's own automatic per-tab count (see enableBlockCountBadge in
-// background.js) is what the toolbar badge shows -- read it back rather than
-// asking for detailed matched-rule data, which needs an extra permission
-// and is restricted to unpacked extensions in Chrome.
-async function loadBlockedCount() {
-  if (originTabId == null) return "—";
-  try {
-    const text = await api.action.getBadgeText({ tabId: originTabId });
-    return text && /^\d+/.test(text) ? text : "0";
-  } catch {
-    return "—";
-  }
-}
-
 async function init() {
   document.getElementById("statsSite").textContent = originHost || "No active site";
 
-  const [{ state }, meta, blocked] = await Promise.all([
+  const [{ state }, meta] = await Promise.all([
     api.runtime.sendMessage({ type: "GET_STATE" }),
     loadMeta(),
-    loadBlockedCount(),
   ]);
-
-  document.getElementById("blockedCount").textContent = blocked;
 
   const categoryTable = document.getElementById("categoryTable");
   for (const cat of CATEGORIES) {
