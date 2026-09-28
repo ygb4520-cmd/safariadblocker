@@ -26,6 +26,10 @@
       <input type="checkbox" id="toggle-malware" />
     </label>
     <label class="switch-row">
+      <span>Annoyances</span>
+      <input type="checkbox" id="toggle-annoyances" />
+    </label>
+    <label class="switch-row">
       <span>Custom rules</span>
       <input type="checkbox" id="toggle-custom" />
     </label>
@@ -51,7 +55,15 @@
     <p class="hint">One per line: a domain (<code>example.com</code>) or an Adblock-style filter (<code>||ads.example.com^</code>).</p>
     <textarea id="custom-input" rows="3" placeholder="example.com"></textarea>
     <button id="custom-add">Add</button>
+    <div id="customCount" class="custom-count"></div>
     <ul id="custom-list"></ul>
+  </section>
+
+  <section class="row export-import-row">
+    <button id="export-settings" class="secondary-btn">Export settings</button>
+    <button id="import-settings" class="secondary-btn">Import settings</button>
+    <input type="file" id="import-file-input" accept="application/json" hidden />
+    <div id="importStatus" class="import-status"></div>
   </section>
 
   <script src="popup.js"></script>

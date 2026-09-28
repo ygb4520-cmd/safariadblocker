@@ -1,9 +1,9 @@
 // Background service worker: owns all declarativeNetRequest state.
 //
 // Categories:
-//  - "ads" / "trackers" / "malware": static rulesets bundled at build time
-//    (rules/ads.json, rules/trackers.json, rules/malware.json). Toggled
-//    on/off via updateEnabledRulesets.
+//  - "ads" / "trackers" / "malware" / "annoyances": static rulesets bundled
+//    at build time (rules/ads.json, rules/trackers.json, rules/malware.json,
+//    rules/annoyances.json). Toggled on/off via updateEnabledRulesets.
 //  - "custom": static rulesets are immutable once packaged, so user-added
 //    patterns can't be appended to a bundled rules/custom.json at runtime.
 //    Instead, custom rules are implemented as *dynamic* rules
@@ -21,7 +21,7 @@ const CUSTOM_RULE_ID_END = 4999; // inclusive upper bound reserved for custom-pa
 const PAUSE_RULE_ID_START = 5000; // reserved range for per-site pause/allow rules
 
 const DEFAULT_STATE = {
-  rulesetsEnabled: { ads: true, trackers: true, malware: true, custom: true },
+  rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, custom: true },
   customPatterns: [], // array of raw pattern strings, e.g. "example.com" or "||ads.example.com^"
   pausedDomains: [], // array of hostnames currently whitelisted
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
@@ -49,7 +49,7 @@ function patternToUrlFilter(pattern) {
 async function syncStaticRulesets(state) {
   const enable = [];
   const disable = [];
-  for (const id of ["ads", "trackers", "malware"]) {
+  for (const id of ["ads", "trackers", "malware", "annoyances"]) {
     (state.rulesetsEnabled[id] ? enable : disable).push(id);
   }
   await api.declarativeNetRequest.updateEnabledRulesets({
@@ -223,7 +223,11 @@ async function handleMessage(message) {
       let activeHostname = null;
       const [tab] = await api.tabs.query({ active: true, currentWindow: true });
       if (tab?.url) activeHostname = hostnameFromUrl(tab.url);
-      return { state, activeHostname };
+      // Custom patterns beyond this many are silently dropped when synced to
+      // dynamic rules (see syncCustomDynamicRules) -- exposed here so the
+      // popup can warn before that silently happens.
+      const customRuleCap = CUSTOM_RULE_ID_END - CUSTOM_RULE_ID_START + 1;
+      return { state, activeHostname, customRuleCap };
     }
 
     case "SET_RULESET_ENABLED": {
@@ -276,6 +280,45 @@ async function handleMessage(message) {
     case "SET_YOUTUBE_SKIP_ENABLED": {
       // Same as above -- youtube-skip.js reads this straight from storage.
       await setState({ youtubeAdSkip: message.enabled });
+      return { ok: true };
+    }
+
+    case "IMPORT_STATE": {
+      // The imported file is untrusted input (the user picked an arbitrary
+      // file) -- this is the real trust boundary, not popup.js's JSON.parse
+      // check. Every field is individually type-checked and only known keys
+      // are copied through; anything malformed or unrecognized is silently
+      // dropped rather than rejecting the whole import over one bad field.
+      const incoming = message.state;
+      if (!incoming || typeof incoming !== "object") {
+        return { ok: false, error: "Not a settings object" };
+      }
+      const sanitized = {};
+      if (Array.isArray(incoming.customPatterns)) {
+        sanitized.customPatterns = incoming.customPatterns.filter((p) => typeof p === "string");
+      }
+      if (Array.isArray(incoming.pausedDomains)) {
+        sanitized.pausedDomains = incoming.pausedDomains.filter((d) => typeof d === "string");
+      }
+      if (incoming.rulesetsEnabled && typeof incoming.rulesetsEnabled === "object") {
+        const rulesetsEnabled = { ...state.rulesetsEnabled };
+        for (const key of Object.keys(DEFAULT_STATE.rulesetsEnabled)) {
+          if (typeof incoming.rulesetsEnabled[key] === "boolean") {
+            rulesetsEnabled[key] = incoming.rulesetsEnabled[key];
+          }
+        }
+        sanitized.rulesetsEnabled = rulesetsEnabled;
+      }
+      if (typeof incoming.popupRedirectProtection === "boolean") {
+        sanitized.popupRedirectProtection = incoming.popupRedirectProtection;
+      }
+      if (typeof incoming.youtubeAdSkip === "boolean") {
+        sanitized.youtubeAdSkip = incoming.youtubeAdSkip;
+      }
+
+      await setState(sanitized);
+      await syncAll();
+      await updateBadgeForActiveTab();
       return { ok: true };
     }
 

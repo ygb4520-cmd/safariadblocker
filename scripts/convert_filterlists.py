@@ -53,6 +53,17 @@ MALWARE_SOURCES = [
     ("https://malware-filter.gitlab.io/urlhaus-filter/urlhaus-filter-ag-online.txt", "urlhaus.txt"),
     ("https://malware-filter.gitlab.io/phishing-filter/phishing-filter-ag.txt", "phishing.txt"),
 ]
+# uBlock Origin's own curated annoyances lists -- cookie-consent banners,
+# newsletter/social overlays, "continue reading" nags, etc. Both live-
+# checked before adding (200 OK, real ABP-syntax content, actively
+# maintained). "filters/annoyances.txt" itself is a near-empty stub in
+# uBlock's own list system (it just points uBlock at Fanboy's/Adguard's
+# lists internally) -- these two are where uBlock's OWN substantive content
+# actually lives, so those are the ones worth fetching directly.
+ANNOYANCES_SOURCES = [
+    ("https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances-cookies.txt", "annoyances-cookies.txt"),
+    ("https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances-others.txt", "annoyances-others.txt"),
+]
 
 # Options that change semantics in ways declarativeNetRequest can't safely
 # replicate via a simple block/allow + urlFilter rule; if present, skip the rule.
@@ -96,6 +107,12 @@ MIN_ABSOLUTE_ENTRIES = {
     "ads.json": 5000,
     "trackers.json": 2000,
     "malware.json": 500,
+    # Unlike ads/trackers/malware, uBlock's annoyances lists are almost
+    # entirely cosmetic (##) entries -- the network-blocking portion that
+    # ends up in annoyances.json is genuinely small (~200 rules from a live
+    # run), so this floor is set well below that real number, not below an
+    # assumed-large one like the others.
+    "annoyances.json": 50,
     "cosmetic.json": 5000,
 }
 # Also refuse a sudden big drop from whatever's currently shipped, even if
@@ -234,12 +251,31 @@ def convert_line(line):
 # earliest-occurring separator in the line as the real domain/selector split.
 COSMETIC_SEPARATORS = ["#@#", "#?#", "#$#", "##"]
 
+# uBlock/AdGuard procedural and scriptlet syntax can ride in under a plain
+# "##" token too, not just "#?#"/"#$#" -- e.g. "example.com##+js(acs, ...)"
+# or "example.com##.ad:has-text(Sponsored)". These aren't real CSS (a
+# scriptlet directive isn't a selector at all; a procedural pseudo-class
+# like :has-text() would either fail to parse or, worse, silently take down
+# every other selector sharing its chunk -- see content.js's chunking).
+# Checked by substring rather than only by separator, so this catches them
+# regardless of which token they're smuggled in under. Discovered while
+# adding uBlock's own annoyances lists, which use both forms.
+PROCEDURAL_SELECTOR_MARKERS = (
+    "+js(", ":has-text(", ":matches-css(", ":matches-css-before(",
+    ":matches-css-after(", ":upward(", ":xpath(", ":if(", ":if-not(",
+    ":min-text-length(", ":remove(", ":remove-attr(", ":remove-class(",
+    ":style(", ":watch-attr(", ":matches-attr(", ":matches-property(",
+    "-abp-has(", "-abp-contains(",
+)
+
 
 def parse_cosmetic_line(line):
     """Returns (domains, selector, is_exception) or None if not a (supported) cosmetic line.
 
     domains is a list of raw domain tokens, each optionally "~"-prefixed for
-    negation, exactly as EasyList writes them (e.g. ["a.com", "~b.com"]).
+    negation, exactly as EasyList writes them (e.g. ["a.com", "~b.com"]) --
+    a lone "*" (ABP's "generic, applies everywhere" wildcard) is normalized
+    away to "no domain restriction" here, same as omitting a domain entirely.
     """
     line = line.strip()
     if not line or line.startswith("!"):
@@ -266,8 +302,19 @@ def parse_cosmetic_line(line):
     if not selector:
         return None
 
+    selector_lower = selector.lower()
+    if any(marker in selector_lower for marker in PROCEDURAL_SELECTOR_MARKERS):
+        return None
+
     is_exception = best_sep == "#@#"
     domains = [d.strip() for d in domain_part.split(",") if d.strip()] if domain_part else []
+    # "*" (alone, e.g. "*##selector", or combined with negated domains, e.g.
+    # "~a.com,*##selector" meaning "generic, except a.com") is ABP's explicit
+    # "applies everywhere" marker -- it carries no information beyond what an
+    # empty/negated-only domain list already means to build_cosmetic_rules,
+    # so drop it rather than let it become a literal (and never-matching)
+    # "*" domain key.
+    domains = [d for d in domains if d != "*"]
     return domains, selector, is_exception
 
 
@@ -500,6 +547,8 @@ def main():
                      help="Max rules for ads.json/trackers.json each (default 20000). Important: declarativeNetRequest's GUARANTEED_MINIMUM_STATIC_RULES (30000) is a COMBINED total across every enabled static ruleset, not per-ruleset -- with 3 rulesets (ads/trackers/malware) now enabled by default, raising this significantly pushes the combined total into the browser's shared 'extra' pool rather than the strictly-guaranteed one. 20000+20000+--max-malware-rules has been the tested-working combination; raise with that in mind.")
     ap.add_argument("--max-malware-rules", type=int, default=10000,
                      help="Max rules for malware.json (default 10000). Deliberately smaller than --max-rules: URLhaus/phishing-filter are current-threats-only lists (refreshed twice daily), not broad EasyList-scale coverage, so they need less budget -- and keeping this smaller helps hold the combined enabled-rule total closer to the guaranteed floor.")
+    ap.add_argument("--max-annoyances-rules", type=int, default=10000,
+                     help="Max rules for annoyances.json (default 10000). uBlock's annoyances lists are mostly cosmetic (##) entries, not network-blocking ones, so the network-rule portion is much smaller than ads/trackers -- kept modest for the same combined-total reason as --max-malware-rules.")
     ap.add_argument("--max-cosmetic-rules", type=int, default=40000,
                      help="Max combined generic+domain-scoped cosmetic selectors (default 40000). These are just CSS selectors in a JSON file fetched once per page, not subject to DNR limits, but kept bounded to control bundle size and per-page injection cost.")
     ap.add_argument("--offline", action="store_true", help="Reuse previously downloaded raw lists instead of re-downloading.")
@@ -538,9 +587,19 @@ def main():
     if not ok:
         failed_files.append("malware.json")
 
+    print("=== Annoyances (uBlock Origin's cookie-notice + other-annoyances lists) ===")
+    annoyances_paths = fetch_sources(ANNOYANCES_SOURCES, args.offline)
+    annoyances_lines = load_lines(annoyances_paths)
+    annoyances_rules, an_blocks_total, an_allows_total = build_rules(annoyances_lines, args.max_annoyances_rules)
+    print(f"  parsed {an_blocks_total:,} block + {an_allows_total:,} allow candidate rules")
+    ok = write_ruleset(annoyances_rules, "annoyances.json")
+    results.append(("annoyances.json", len(annoyances_rules), ok))
+    if not ok:
+        failed_files.append("annoyances.json")
+
     print("=== Cosmetic (element hiding, from all lists) ===")
     cosmetic_data, cosmetic_total = build_cosmetic_rules(
-        ads_lines + tracker_lines + malware_lines, args.max_cosmetic_rules
+        ads_lines + tracker_lines + malware_lines + annoyances_lines, args.max_cosmetic_rules
     )
     print(f"  {len(cosmetic_data['generic']):,} generic + "
           f"{cosmetic_total - len(cosmetic_data['generic']):,} domain-scoped selectors "

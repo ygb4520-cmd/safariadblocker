@@ -60,6 +60,50 @@ h1 {
   font-weight: 600;
 }
 
+.custom-count {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+.custom-count.over-cap {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.export-import-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.secondary-btn {
+  flex: 1;
+  margin-top: 0;
+  padding: 6px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.secondary-btn:active {
+  opacity: 0.7;
+}
+
+.import-status {
+  width: 100%;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.import-status.error {
+  color: var(--warn);
+  font-weight: 600;
+}
+
 .row {
   border-top: 1px solid var(--border);
   padding: 8px 0;

@@ -59,6 +59,11 @@
         "id": "malware",
         "enabled": true,
         "path": "rules/malware.json"
+      },
+      {
+        "id": "annoyances",
+        "enabled": true,
+        "path": "rules/annoyances.json"
       }
     ]
   }

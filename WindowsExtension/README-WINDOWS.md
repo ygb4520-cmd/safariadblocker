@@ -45,9 +45,11 @@ click the pin icon so it's always visible.
 Same idea as the Mac version:
 
 - Open the popup (toolbar icon) — you should see **Ads**, **Trackers**,
-  **Malware / Phishing**, **Custom rules**, **Pop-ups / Redirects**, and
-  **YouTube Ad Skip** toggles, **Pause on this site**, a "Rules updated ..."
-  line, and the custom-pattern box.
+  **Malware / Phishing**, **Annoyances**, **Custom rules**,
+  **Pop-ups / Redirects**, and **YouTube Ad Skip** toggles, **Pause on this
+  site**, a "Rules updated ..." line, the custom-pattern box with a
+  patterns-used counter, and **Export settings** / **Import settings**
+  buttons.
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**
   tab, reload. With everything on, you should see far fewer third-party
   requests (`doubleclick.net`, `google-analytics.com`, etc.) than with
@@ -56,9 +58,9 @@ Same idea as the Mac version:
 
 ## Refreshing the rules later
 
-`rules/{ads,trackers,malware,cosmetic,meta}.json` here are the exact same
-files generated on the Mac side — a snapshot, not auto-updating. If you
-want this Windows copy to refresh independently later:
+`rules/{ads,trackers,malware,annoyances,cosmetic,meta}.json` here are the
+exact same files generated on the Mac side — a snapshot, not auto-updating.
+If you want this Windows copy to refresh independently later:
 
 1. Install Python 3 from [python.org](https://www.python.org/downloads/) if
    it's not already on the machine.
@@ -67,19 +69,22 @@ want this Windows copy to refresh independently later:
    extension itself).
 3. Run `python convert_filterlists.py` from a folder containing this
    `rules/` directory — it'll download fresh EasyList/EasyPrivacy/Peter
-   Lowe's list/URLhaus/phishing-filter and regenerate all five files
-   (including `meta.json`, which drives the popup's "Rules updated" line).
-   See the main project's `README.md` for details; the script is plain
-   Python with no OS-specific code, so it runs the same way on Windows.
+   Lowe's list/URLhaus/phishing-filter/uBlock's annoyances lists and
+   regenerate all six files (including `meta.json`, which drives the
+   popup's "Rules updated" line). See the main project's `README.md` for
+   details; the script is plain Python with no OS-specific code, so it runs
+   the same way on Windows.
 
 ## Credits
 
 The `rules/*.json` files bundled here are generated from third-party filter
 lists, not written by this project: [EasyList](https://easylist.to/) and
 [EasyPrivacy](https://easylist.to/) (ads/trackers/cosmetic hiding),
-[Peter Lowe's list](https://pgl.yoyo.org/adservers/), and
+[Peter Lowe's list](https://pgl.yoyo.org/adservers/),
 [URLhaus](https://urlhaus.abuse.ch/) + [phishing-filter](https://gitlab.com/malware-filter/phishing-filter)
-(malware/phishing). See the main project's `README.md` for more detail.
+(malware/phishing), and [uBlock Origin's annoyances lists](https://github.com/uBlockOrigin/uAssets/tree/master/filters)
+(cookie notices + other annoyances). See the main project's `README.md` for
+more detail.
 
 ## Differences from the Mac/Safari version
 

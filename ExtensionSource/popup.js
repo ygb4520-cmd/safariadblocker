@@ -3,6 +3,7 @@ const api = globalThis.browser || globalThis.chrome;
 const toggleAds = document.getElementById("toggle-ads");
 const toggleTrackers = document.getElementById("toggle-trackers");
 const toggleMalware = document.getElementById("toggle-malware");
+const toggleAnnoyances = document.getElementById("toggle-annoyances");
 const toggleCustom = document.getElementById("toggle-custom");
 const togglePopupRedirect = document.getElementById("toggle-popup-redirect");
 const toggleYoutubeSkip = document.getElementById("toggle-youtube-skip");
@@ -12,8 +13,15 @@ const rulesHealth = document.getElementById("rulesHealth");
 const customInput = document.getElementById("custom-input");
 const customAddBtn = document.getElementById("custom-add");
 const customList = document.getElementById("custom-list");
+const customCount = document.getElementById("customCount");
+const exportBtn = document.getElementById("export-settings");
+const importBtn = document.getElementById("import-settings");
+const importFileInput = document.getElementById("import-file-input");
+const importStatus = document.getElementById("importStatus");
 
 let activeHostname = null;
+let customRuleCap = Infinity;
+let currentState = null;
 
 function send(message) {
   return api.runtime.sendMessage(message);
@@ -35,6 +43,12 @@ function renderCustomList(patterns) {
     li.append(span, removeBtn);
     customList.appendChild(li);
   }
+
+  const overCap = patterns.length > customRuleCap;
+  customCount.textContent = overCap
+    ? `${patterns.length} / ${customRuleCap} patterns -- the last ${patterns.length - customRuleCap} aren't being enforced`
+    : `${patterns.length} / ${customRuleCap} patterns`;
+  customCount.classList.toggle("over-cap", overCap);
 }
 
 // rules/meta.json is written by scripts/convert_filterlists.py -- one
@@ -84,12 +98,15 @@ async function loadRulesHealth() {
 }
 
 async function init() {
-  const { state, activeHostname: hostname } = await send({ type: "GET_STATE" });
+  const { state, activeHostname: hostname, customRuleCap: cap } = await send({ type: "GET_STATE" });
   activeHostname = hostname;
+  currentState = state;
+  if (cap) customRuleCap = cap;
 
   toggleAds.checked = !!state.rulesetsEnabled.ads;
   toggleTrackers.checked = !!state.rulesetsEnabled.trackers;
   toggleMalware.checked = state.rulesetsEnabled.malware !== false;
+  toggleAnnoyances.checked = state.rulesetsEnabled.annoyances !== false;
   toggleCustom.checked = !!state.rulesetsEnabled.custom;
   togglePopupRedirect.checked = state.popupRedirectProtection !== false;
   toggleYoutubeSkip.checked = state.youtubeAdSkip !== false;
@@ -119,6 +136,10 @@ toggleMalware.addEventListener("change", () => {
   send({ type: "SET_RULESET_ENABLED", ruleset: "malware", enabled: toggleMalware.checked });
 });
 
+toggleAnnoyances.addEventListener("change", () => {
+  send({ type: "SET_RULESET_ENABLED", ruleset: "annoyances", enabled: toggleAnnoyances.checked });
+});
+
 toggleCustom.addEventListener("change", () => {
   send({ type: "SET_RULESET_ENABLED", ruleset: "custom", enabled: toggleCustom.checked });
 });
@@ -142,6 +163,49 @@ customAddBtn.addEventListener("click", async () => {
   const res = await send({ type: "ADD_CUSTOM_PATTERNS", patterns: raw });
   renderCustomList(res.customPatterns);
   customInput.value = "";
+});
+
+exportBtn.addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(currentState, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `ad-tracker-blocker-settings-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  importStatus.textContent = "Settings exported.";
+  importStatus.classList.remove("error");
+});
+
+importBtn.addEventListener("click", () => importFileInput.click());
+
+// Reads an untrusted file the user picked -- background.js's IMPORT_STATE
+// handler does the real validation (this extension's own trust boundary is
+// there, not here); this is just surfacing a friendly error if the file
+// isn't even valid JSON before bothering to send it.
+importFileInput.addEventListener("change", async () => {
+  const file = importFileInput.files[0];
+  importFileInput.value = ""; // allow re-selecting the same file later
+  if (!file) return;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(await file.text());
+  } catch {
+    importStatus.textContent = "That file isn't valid JSON -- was it exported from this extension?";
+    importStatus.classList.add("error");
+    return;
+  }
+
+  const res = await send({ type: "IMPORT_STATE", state: parsed });
+  if (res.ok) {
+    importStatus.textContent = "Settings imported.";
+    importStatus.classList.remove("error");
+    await init(); // refresh every toggle/list from the freshly imported state
+  } else {
+    importStatus.textContent = "Import failed -- see the extension's console for details.";
+    importStatus.classList.add("error");
+  }
 });
 
 init();
