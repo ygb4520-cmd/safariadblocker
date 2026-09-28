@@ -102,6 +102,26 @@ open "Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj"
 A free personal team can only sign apps that run locally for development —
 which is exactly what you want here.
 
+#### Where the built app lives
+
+Every build (Cmd+B or Cmd+R) also copies the finished, signed app into
+`~/Applications` automatically — this is a Build post-action baked into the
+Xcode scheme (see `Ad Tracker Blocker.xcodeproj/xcshareddata/xcschemes/`),
+not something you need to set up. `~/Applications` is a stable folder Xcode
+never touches; the raw output of a build normally lives under
+`~/Library/Developer/Xcode/DerivedData/...`, which is scratch space Xcode
+can delete or relocate at any time, and Safari can lose track of the
+extension ("shows as not loaded") if it's still pointed there. Point Safari
+at the `~/Applications` copy (step 3 below) and it'll always be the current
+build, no manual copying needed.
+
+If you ever end up with the extension showing twice in **Safari > Settings
+> Extensions** with no way to tell which is which, it means an old copy of
+the app is still sitting around somewhere (most often in DerivedData from
+before this scheme existed) alongside the `~/Applications` one — Safari
+lists a row per physical copy it's found, not per extension. Delete the
+extra copy and relaunch Safari to clear the duplicate row.
+
 ### 2. Enable unsigned extensions in Safari
 
 Personal-team (free) signed extensions aren't notarized, so Safari won't
