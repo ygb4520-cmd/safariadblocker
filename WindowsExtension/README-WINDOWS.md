@@ -46,15 +46,17 @@ Same idea as the Mac version:
 
 - Open the popup (toolbar icon) — you should see **Ads**, **Trackers**,
   **Malware / Phishing**, **Annoyances**, **Anti-Adblock**, **Custom rules**,
-  **Pop-ups / Redirects**, and **YouTube Ad Skip** toggles, **Pause on this
-  site**, a "Rules updated ..." line, the custom-pattern box with a
-  patterns-used counter, and **Export settings** / **Import settings**
-  buttons.
+  **Pop-ups / Redirects**, **YouTube Ad Skip**, and **Referrer Privacy**
+  toggles, **Pause on this site**, a "Rules updated ..." line, the
+  custom-pattern box with a patterns-used counter, and **Export settings**
+  / **Import settings** buttons.
+- Visit any page and confirm a number appears on the toolbar icon's badge
+  (the browser's own live count of blocked requests on that page).
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**
   tab, reload. With everything on, you should see far fewer third-party
   requests (`doubleclick.net`, `google-analytics.com`, etc.) than with
-  **Pause on this site** turned on — which should also show an orange pause
-  glyph on the toolbar icon itself while that tab is active.
+  **Pause on this site** turned on — which should also switch the toolbar
+  icon itself to a grayed-out version while that tab is active.
 
 ## Refreshing the rules later
 

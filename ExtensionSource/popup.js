@@ -8,6 +8,7 @@ const toggleAntiAdblock = document.getElementById("toggle-antiadblock");
 const toggleCustom = document.getElementById("toggle-custom");
 const togglePopupRedirect = document.getElementById("toggle-popup-redirect");
 const toggleYoutubeSkip = document.getElementById("toggle-youtube-skip");
+const toggleReferrerPrivacy = document.getElementById("toggle-referrer-privacy");
 const togglePause = document.getElementById("toggle-pause");
 const siteLabel = document.getElementById("siteLabel");
 const rulesHealth = document.getElementById("rulesHealth");
@@ -112,6 +113,7 @@ async function init() {
   toggleCustom.checked = !!state.rulesetsEnabled.custom;
   togglePopupRedirect.checked = state.popupRedirectProtection !== false;
   toggleYoutubeSkip.checked = state.youtubeAdSkip !== false;
+  toggleReferrerPrivacy.checked = state.referrerPrivacy !== false;
 
   if (activeHostname) {
     siteLabel.textContent = activeHostname;
@@ -156,6 +158,10 @@ togglePopupRedirect.addEventListener("change", () => {
 
 toggleYoutubeSkip.addEventListener("change", () => {
   send({ type: "SET_YOUTUBE_SKIP_ENABLED", enabled: toggleYoutubeSkip.checked });
+});
+
+toggleReferrerPrivacy.addEventListener("change", () => {
+  send({ type: "SET_REFERRER_PRIVACY_ENABLED", enabled: toggleReferrerPrivacy.checked });
 });
 
 togglePause.addEventListener("change", () => {

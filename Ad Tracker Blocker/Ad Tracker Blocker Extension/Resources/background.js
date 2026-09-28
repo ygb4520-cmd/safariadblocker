@@ -14,12 +14,19 @@
 //  - "Pause on this site" also uses dynamic rules: a single high-priority
 //    "allow" rule scoped to the site's domain, which beats every block rule
 //    regardless of which categories are enabled.
+//  - "Referrer Privacy" is one more dynamic rule (fixed ID, not list-derived
+//    data so it doesn't need a whole static ruleset of its own): strips the
+//    Referer header on third-party requests only, not first-party ones --
+//    aggressive enough for real privacy benefit, conservative enough not to
+//    break same-origin referer checks some sites legitimately rely on.
 
 const api = globalThis.browser || globalThis.chrome;
 
 const CUSTOM_RULE_ID_START = 1;
 const CUSTOM_RULE_ID_END = 4999; // inclusive upper bound reserved for custom-pattern rules
-const PAUSE_RULE_ID_START = 5000; // reserved range for per-site pause/allow rules
+const PAUSE_RULE_ID_START = 5000;
+const PAUSE_RULE_ID_END = 8999; // reserved range for per-site pause/allow rules (thousands of paused sites is unrealistic)
+const REFERRER_RULE_ID = 9000; // fixed, single rule -- just past pause's range
 
 const DEFAULT_STATE = {
   rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, antiadblock: true, custom: true },
@@ -27,6 +34,7 @@ const DEFAULT_STATE = {
   pausedDomains: [], // array of hostnames currently whitelisted
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
   youtubeAdSkip: true, // youtube-skip.js: auto-click Skip Ad + mute through unskippable ads
+  referrerPrivacy: true, // strips the Referer header on third-party requests
 };
 
 async function getState() {
@@ -102,10 +110,10 @@ async function syncPauseDynamicRules(state) {
   return withDynamicRulesLock(async () => {
     const existing = await api.declarativeNetRequest.getDynamicRules();
     const removeRuleIds = existing
-      .filter((r) => r.id >= PAUSE_RULE_ID_START)
+      .filter((r) => r.id >= PAUSE_RULE_ID_START && r.id <= PAUSE_RULE_ID_END)
       .map((r) => r.id);
 
-    const addRules = state.pausedDomains.map((domain, i) => ({
+    const addRules = state.pausedDomains.slice(0, PAUSE_RULE_ID_END - PAUSE_RULE_ID_START + 1).map((domain, i) => ({
       id: PAUSE_RULE_ID_START + i,
       priority: 100, // outranks every block rule, static or dynamic
       action: { type: "allow" },
@@ -117,6 +125,32 @@ async function syncPauseDynamicRules(state) {
       // making pause a near-total no-op.
       condition: { initiatorDomains: [domain] },
     }));
+
+    await api.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules });
+  });
+}
+
+async function syncReferrerPrivacyRule(state) {
+  return withDynamicRulesLock(async () => {
+    const existing = await api.declarativeNetRequest.getDynamicRules();
+    const removeRuleIds = existing.filter((r) => r.id === REFERRER_RULE_ID).map((r) => r.id);
+
+    const addRules = [];
+    if (state.referrerPrivacy) {
+      addRules.push({
+        id: REFERRER_RULE_ID,
+        priority: 1,
+        action: {
+          type: "modifyHeaders",
+          requestHeaders: [{ header: "Referer", operation: "remove" }],
+        },
+        // thirdParty only -- stripping the referer on a site's own
+        // first-party requests risks breaking same-origin referer checks
+        // (some login/CSRF/hotlink-protection flows legitimately rely on
+        // it); third-party is where the actual privacy leak is anyway.
+        condition: { domainType: "thirdParty" },
+      });
+    }
 
     await api.declarativeNetRequest.updateDynamicRules({ removeRuleIds, addRules });
   });
@@ -144,6 +178,7 @@ async function syncAll() {
     syncStaticRulesets(state),
     syncCustomDynamicRules(state),
     syncPauseDynamicRules(state),
+    syncReferrerPrivacyRule(state),
   ]);
 }
 
@@ -155,13 +190,20 @@ function hostnameFromUrl(url) {
   }
 }
 
-// Toolbar-icon badge: shows a pause glyph on tabs whose site is paused, so
-// "did I leave this paused?" is answerable without opening the popup.
-// Badges are per-tab (via the tabId option), so switching tabs or
+// Toolbar icon: swaps to a grayed-out variant on tabs whose site is paused,
+// so "did I leave this paused?" is answerable without opening the popup.
+// This is an ICON swap, not a badge-text change, deliberately -- the badge
+// TEXT slot is owned by setExtensionActionOptions' automatic per-tab
+// block-count display (see enableBlockCountBadge below), which is a global
+// on/off switch with no documented way to exempt one tab. Fighting over
+// badge text between "show the count" and "show a pause glyph" would race;
+// separating them onto icon vs. badge avoids that entirely.
+// Icon changes are per-tab (via the tabId option), so switching tabs or
 // navigating within a tab has to actively refresh it -- there's no
 // automatic "current tab" concept in the action API.
-const PAUSE_BADGE_TEXT = "⏸"; // pause symbol
-const PAUSE_BADGE_COLOR = "#ff9500";
+const ICON_SIZES = [16, 32, 48, 128];
+const ICON_PATHS_NORMAL = Object.fromEntries(ICON_SIZES.map((s) => [s, `icons/icon-${s}.png`]));
+const ICON_PATHS_PAUSED = Object.fromEntries(ICON_SIZES.map((s) => [s, `icons/icon-${s}-paused.png`]));
 
 async function updateBadgeForTab(tabId, url) {
   if (tabId == null) return;
@@ -169,12 +211,24 @@ async function updateBadgeForTab(tabId, url) {
   const state = await getState();
   const paused = !!hostname && state.pausedDomains.includes(hostname);
   try {
-    await api.action.setBadgeText({ tabId, text: paused ? PAUSE_BADGE_TEXT : "" });
-    if (paused) {
-      await api.action.setBadgeBackgroundColor({ tabId, color: PAUSE_BADGE_COLOR });
-    }
+    await api.action.setIcon({ tabId, path: paused ? ICON_PATHS_PAUSED : ICON_PATHS_NORMAL });
   } catch {
     // Tab may have closed/navigated away before this resolved -- harmless.
+  }
+}
+
+// Turns on the browser's own automatic "badge text = number of requests
+// blocked on this page" display. One-time, extension-wide setting (not
+// per-tab) -- the browser updates it live as declarativeNetRequest rules
+// match, so there's nothing for background.js to maintain here.
+async function enableBlockCountBadge() {
+  try {
+    await api.declarativeNetRequest.setExtensionActionOptions({
+      displayActionCountAsBadgeText: true,
+    });
+  } catch {
+    // Not available on this browser/version -- badge just stays blank, no
+    // functional loss.
   }
 }
 
@@ -201,12 +255,14 @@ api.runtime.onInstalled.addListener(async () => {
   }
   await resetDynamicRulesStore();
   await syncAll();
+  await enableBlockCountBadge();
   await updateBadgeForActiveTab();
 });
 
 api.runtime.onStartup?.addListener(async () => {
   await resetDynamicRulesStore();
   await syncAll();
+  await enableBlockCountBadge();
   await updateBadgeForActiveTab();
 });
 
@@ -284,6 +340,12 @@ async function handleMessage(message) {
       return { ok: true };
     }
 
+    case "SET_REFERRER_PRIVACY_ENABLED": {
+      await setState({ referrerPrivacy: message.enabled });
+      await syncReferrerPrivacyRule({ ...state, referrerPrivacy: message.enabled });
+      return { ok: true };
+    }
+
     case "IMPORT_STATE": {
       // The imported file is untrusted input (the user picked an arbitrary
       // file) -- this is the real trust boundary, not popup.js's JSON.parse
@@ -315,6 +377,9 @@ async function handleMessage(message) {
       }
       if (typeof incoming.youtubeAdSkip === "boolean") {
         sanitized.youtubeAdSkip = incoming.youtubeAdSkip;
+      }
+      if (typeof incoming.referrerPrivacy === "boolean") {
+        sanitized.referrerPrivacy = incoming.referrerPrivacy;
       }
 
       await setState(sanitized);

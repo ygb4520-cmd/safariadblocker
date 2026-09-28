@@ -11,11 +11,12 @@ OUT_DIR = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__
 SIZES = [16, 32, 48, 128]
 
 BLUE = (0, 122, 255, 255)
+GRAY = (142, 142, 147, 255)  # paused-state variant -- visually muted, still same shape
 WHITE = (255, 255, 255, 255)
 TRANSPARENT = (0, 0, 0, 0)
 
 
-def make_pixels(size):
+def make_pixels(size, fill_color):
     cx = cy = size / 2
     r = size * 0.46
     bar_half_width = max(1.0, size * 0.09)
@@ -35,7 +36,7 @@ def make_pixels(size):
             elif ring:
                 pixels[y][x] = WHITE
             else:
-                pixels[y][x] = BLUE
+                pixels[y][x] = fill_color
     return pixels
 
 
@@ -68,10 +69,17 @@ def write_png(pixels, size, path):
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     for size in SIZES:
-        pixels = make_pixels(size)
         path = os.path.join(OUT_DIR, f"icon-{size}.png")
-        write_png(pixels, size, path)
+        write_png(make_pixels(size, BLUE), size, path)
         print(f"wrote {path}")
+
+        # Paused-state variant: same shape, grayed out, so the toolbar icon
+        # itself signals "paused on this site" -- separate from the
+        # block-count badge text, which needs the normal badge-text slot
+        # for setExtensionActionOptions' automatic per-tab count display.
+        paused_path = os.path.join(OUT_DIR, f"icon-{size}-paused.png")
+        write_png(make_pixels(size, GRAY), size, paused_path)
+        print(f"wrote {paused_path}")
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
 # Ad & Tracker Blocker (Safari Web Extension)
 
 A personal-use Safari Web Extension for macOS that blocks ads, trackers, and
-malware/phishing sites via `declarativeNetRequest`, with seven independently
+malware/phishing sites via `declarativeNetRequest`, with eight independently
 toggleable categories (Ads, Trackers, Malware/Phishing, Annoyances,
-Anti-Adblock, Custom rules, Pop-ups/Redirects), real cosmetic filtering (not
-just network blocking), YouTube ad mitigation, a per-site "pause" whitelist,
-settings export/import, and a popup UI for managing it all. Built for local
-use through Xcode with a free Apple ID — no paid Developer Program, no App
-Store.
+Anti-Adblock, Custom rules, Pop-ups/Redirects, Referrer Privacy), real
+cosmetic filtering (not just network blocking), YouTube ad mitigation, a
+per-site "pause" whitelist, settings export/import, a live blocked-request
+counter, and a popup UI for managing it all. Built for local use through
+Xcode with a free Apple ID — no paid Developer Program, no App Store.
 
 ## There's no download button for this one
 
@@ -153,12 +153,18 @@ launch it from there.
 
 ### 4. Test that it's working
 
-- Click the toolbar icon to open the popup. You should see eight toggles
+- Click the toolbar icon to open the popup. You should see nine toggles
   (**Ads**, **Trackers**, **Malware/Phishing**, **Annoyances**,
   **Anti-Adblock**, **Custom rules**, **Pop-ups/Redirects**, **YouTube Ad
-  Skip**), a **Pause on this site** toggle, a text box for custom patterns
-  with a pattern counter underneath, and **Export settings** / **Import
-  settings** buttons at the bottom.
+  Skip**, **Referrer Privacy**), a **Pause on this site** toggle, a text box
+  for custom patterns with a pattern counter underneath, and **Export
+  settings** / **Import settings** buttons at the bottom.
+- Visit any page and confirm a number appears on the toolbar icon's badge —
+  that's the browser's own live count of blocked requests on that page.
+  Turn on **Pause on this site**: the badge number should stop updating
+  (nothing's being blocked there anymore) and the icon itself should switch
+  to a grayed-out version; switch to a different, non-paused tab and
+  confirm the icon goes back to normal.
 - Click **Export settings**, confirm a `.json` file downloads, then click
   **Import settings** and pick that same file back — the popup should
   refresh with everything unchanged (a no-op round trip is the easiest way
@@ -175,10 +181,9 @@ launch it from there.
   that domain, and confirm it's blocked; remove it and confirm it loads
   again.
 - Turn on **Pause on this site** on a site you use daily and confirm nothing
-  breaks that the blocker was previously interfering with — you should also
-  see an orange pause glyph appear on the toolbar icon itself while that
-  tab is active; switch to a different (non-paused) tab and confirm the
-  glyph disappears. Turn pause back off when done.
+  breaks that the blocker was previously interfering with (see the icon
+  and badge check above for what "paused" looks like). Turn pause back off
+  when done.
 
 If nothing seems blocked at all, double check "Allow Unsigned Extensions" is
 still on (Safari resets it on relaunch) and that the extension toggle in
@@ -219,6 +224,12 @@ Safari's Extensions settings is on.
 - **Pause on this site**: adds a single high-priority dynamic `allow` rule
   scoped to the current tab's domain, which overrides every block rule
   (static or dynamic) regardless of which categories are enabled.
+- **Referrer Privacy**: one more fixed dynamic rule — strips the `Referer`
+  header on third-party requests only (not first-party ones, to avoid
+  breaking same-origin referer checks some sites legitimately rely on).
+  Doesn't come from a downloaded filter list, so it's a plain
+  `declarativeNetRequest` `modifyHeaders` rule rather than its own static
+  ruleset.
 
 **Custom-rule limit visibility**: the popup shows a live "N / 4999 patterns"
 counter next to the custom-pattern list, and warns if you're over the limit
@@ -235,18 +246,26 @@ whole import over one bad field.
 
 ### Health visibility
 
-Two small things so you can tell the extension is actually working without
+A few things so you can tell the extension is actually working without
 digging through logs:
 
-- **Toolbar badge**: a small orange pause glyph appears on the extension's
-  icon whenever the *current tab's* site is paused, so "did I leave this
+- **Paused-state icon**: the toolbar icon itself switches to a grayed-out
+  variant whenever the *current tab's* site is paused, so "did I leave this
   paused?" is answerable at a glance instead of having to open the popup.
-  Updates automatically as you switch tabs or navigate.
+  Updates automatically as you switch tabs or navigate. This is an icon
+  swap rather than badge text deliberately — the badge text slot is owned
+  by the blocked-request counter below, and the two would fight over it if
+  both tried to use badge text.
+- **Blocked-request counter**: the browser's own built-in per-tab count of
+  matched block rules is shown as the badge number on the toolbar icon —
+  turned on once via `declarativeNetRequest.setExtensionActionOptions`, no
+  extension-side bookkeeping needed; the browser keeps it live as you
+  browse.
 - **"Rules updated" line in the popup**: shows how long ago the block lists
   were last successfully refreshed (e.g. "Rules updated 3 hrs ago"), read
   from `rules/meta.json` (written by `convert_filterlists.py`, see below).
-  It shows the *oldest* of the four rule files' timestamps, not the newest
-  — so if one category's refresh has been silently failing (see the
+  It shows the *oldest* of the tracked rule files' timestamps, not the
+  newest — so if one category's refresh has been silently failing (see the
   self-healing check below) while the others keep updating fine, this line
   still reflects that and turns orange once it's more than 2 days stale.
 
@@ -510,16 +529,20 @@ version.
 
 ### Regenerating icons
 
-The toolbar icons are simple placeholder PNGs (blue "no entry" glyph)
-generated with pure Python (no ImageMagick/PIL dependency):
+The toolbar icons are simple placeholder PNGs (blue "no entry" glyph, plus a
+grayed-out `icon-<size>-paused.png` variant used for the paused-state icon
+swap described above) generated with pure Python (no ImageMagick/PIL
+dependency):
 
 ```bash
 python3 scripts/generate_icons.py
 ```
 
 Feel free to replace `ExtensionSource/icons/icon-*.png` (and the copies
-under `Ad Tracker Blocker Extension/Resources/icons/`) with your own artwork
-at 16/32/48/128px.
+under `Ad Tracker Blocker Extension/Resources/icons/` and
+`WindowsExtension/icons/`) with your own artwork at 16/32/48/128px — if you
+do, make sure to also provide `-paused` variants at each size, or the
+paused-state icon swap will silently fail to find them.
 
 ## Credits
 
