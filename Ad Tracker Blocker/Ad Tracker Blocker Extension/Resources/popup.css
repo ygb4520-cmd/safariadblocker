@@ -22,8 +22,20 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Safari/Chrome cap an extension popup's own height around 600px and
+     silently clip anything past it -- with 8 toggles plus the health line,
+     custom-pattern counter, and export/import buttons, content now
+     regularly exceeds that. Scrolling *inside* our own box, capped safely
+     under the browser's hard limit, means content gets a scrollbar instead
+     of silently vanishing past a cutoff with no way to reach it. */
+  max-height: 560px;
+}
+
 body {
   width: 300px;
+  max-height: 560px;
+  overflow-y: auto;
   margin: 0;
   padding: 12px 14px 16px;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
