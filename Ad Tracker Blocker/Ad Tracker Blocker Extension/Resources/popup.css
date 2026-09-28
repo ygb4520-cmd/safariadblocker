@@ -217,7 +217,8 @@ button:active {
   opacity: 0.8;
 }
 
-#custom-list {
+#custom-list,
+#cosmetic-list {
   list-style: none;
   margin: 8px 0 0;
   padding: 0;
@@ -225,7 +226,8 @@ button:active {
   overflow-y: auto;
 }
 
-#custom-list li {
+#custom-list li,
+#cosmetic-list li {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,13 +237,15 @@ button:active {
   gap: 6px;
 }
 
-#custom-list li span {
+#custom-list li span,
+#cosmetic-list li span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-#custom-list li button {
+#custom-list li button,
+#cosmetic-list li button {
   width: auto;
   margin: 0;
   padding: 2px 8px;

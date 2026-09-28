@@ -19,6 +19,11 @@
 //    Referer header on third-party requests only, not first-party ones --
 //    aggressive enough for real privacy benefit, conservative enough not to
 //    break same-origin referer checks some sites legitimately rely on.
+//  - Custom cosmetic (hide) rules are pure CSS, not declarativeNetRequest at
+//    all -- content.js applies them directly, the same way it applies
+//    rules/cosmetic.json. background.js only owns storing them
+//    (customCosmeticRules: [{hostname, selector}]), added via the popup's
+//    element picker (see content.js).
 
 const api = globalThis.browser || globalThis.chrome;
 
@@ -35,6 +40,7 @@ const DEFAULT_STATE = {
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
   youtubeAdSkip: true, // youtube-skip.js: auto-click Skip Ad + mute through unskippable ads
   referrerPrivacy: true, // strips the Referer header on third-party requests
+  customCosmeticRules: [], // array of {hostname, selector} -- picked via the popup's element picker
 };
 
 async function getState() {
@@ -327,6 +333,32 @@ async function handleMessage(message) {
       return { ok: true, customPatterns };
     }
 
+    case "ADD_CUSTOM_COSMETIC_RULE": {
+      // Sent by content.js's element picker after the user confirms a pick
+      // -- hostname/selector are both generated from the actual clicked
+      // element, not free-typed, so there's no untrusted-text risk here the
+      // way there would be with a manual selector text box.
+      const { hostname, selector } = message;
+      if (!hostname || !selector) return { ok: false, error: "missing hostname/selector" };
+      const exists = state.customCosmeticRules.some(
+        (r) => r.hostname === hostname && r.selector === selector
+      );
+      const customCosmeticRules = exists
+        ? state.customCosmeticRules
+        : [...state.customCosmeticRules, { hostname, selector }];
+      await setState({ customCosmeticRules });
+      return { ok: true, customCosmeticRules };
+    }
+
+    case "REMOVE_CUSTOM_COSMETIC_RULE": {
+      const { hostname, selector } = message;
+      const customCosmeticRules = state.customCosmeticRules.filter(
+        (r) => !(r.hostname === hostname && r.selector === selector)
+      );
+      await setState({ customCosmeticRules });
+      return { ok: true, customCosmeticRules };
+    }
+
     case "SET_POPUP_PROTECTION_ENABLED": {
       // Purely a content.js behavior toggle -- no declarativeNetRequest
       // rules involved, so there's nothing to sync beyond persisting it.
@@ -362,6 +394,11 @@ async function handleMessage(message) {
       }
       if (Array.isArray(incoming.pausedDomains)) {
         sanitized.pausedDomains = incoming.pausedDomains.filter((d) => typeof d === "string");
+      }
+      if (Array.isArray(incoming.customCosmeticRules)) {
+        sanitized.customCosmeticRules = incoming.customCosmeticRules.filter(
+          (r) => r && typeof r.hostname === "string" && typeof r.selector === "string"
+        );
       }
       if (incoming.rulesetsEnabled && typeof incoming.rulesetsEnabled === "object") {
         const rulesetsEnabled = { ...state.rulesetsEnabled };

@@ -48,8 +48,13 @@ Same idea as the Mac version:
   **Malware / Phishing**, **Annoyances**, **Anti-Adblock**, **Custom rules**,
   **Pop-ups / Redirects**, **YouTube Ad Skip**, and **Referrer Privacy**
   toggles, **Pause on this site**, a "Rules updated ..." line, the
-  custom-pattern box with a patterns-used counter, and **Export settings**
-  / **Import settings** buttons.
+  custom-pattern box with a patterns-used counter, a **Pick element to
+  hide** button with its own list of custom hidden elements, and **Export
+  settings** / **Import settings** buttons.
+- Click **Pick element to hide**, hover over something on the page (a red
+  outline should follow your cursor), click it, and confirm **Hide it** in
+  the bar that appears at the bottom — see the main `README.md`'s "Element
+  picker" section for the full details.
 - Visit any page and confirm a number appears on the toolbar icon's badge
   (the browser's own live count of blocked requests on that page).
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**

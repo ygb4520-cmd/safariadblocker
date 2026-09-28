@@ -20,6 +20,8 @@ const exportBtn = document.getElementById("export-settings");
 const importBtn = document.getElementById("import-settings");
 const importFileInput = document.getElementById("import-file-input");
 const importStatus = document.getElementById("importStatus");
+const pickElementBtn = document.getElementById("pick-element");
+const cosmeticList = document.getElementById("cosmetic-list");
 
 let activeHostname = null;
 let customRuleCap = Infinity;
@@ -51,6 +53,28 @@ function renderCustomList(patterns) {
     ? `${patterns.length} / ${customRuleCap} patterns -- the last ${patterns.length - customRuleCap} aren't being enforced`
     : `${patterns.length} / ${customRuleCap} patterns`;
   customCount.classList.toggle("over-cap", overCap);
+}
+
+function renderCosmeticList(rules) {
+  cosmeticList.innerHTML = "";
+  for (const rule of rules) {
+    const li = document.createElement("li");
+    const span = document.createElement("span");
+    span.textContent = `${rule.hostname}: ${rule.selector}`;
+    span.title = span.textContent;
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", async () => {
+      const res = await send({
+        type: "REMOVE_CUSTOM_COSMETIC_RULE",
+        hostname: rule.hostname,
+        selector: rule.selector,
+      });
+      renderCosmeticList(res.customCosmeticRules);
+    });
+    li.append(span, removeBtn);
+    cosmeticList.appendChild(li);
+  }
 }
 
 // rules/meta.json is written by scripts/convert_filterlists.py -- one
@@ -125,6 +149,7 @@ async function init() {
   }
 
   renderCustomList(state.customPatterns);
+  renderCosmeticList(state.customCosmeticRules || []);
   loadRulesHealth();
 }
 
@@ -218,6 +243,17 @@ importFileInput.addEventListener("change", async () => {
     importStatus.textContent = "Import failed -- see the extension's console for details.";
     importStatus.classList.add("error");
   }
+});
+
+// The picker itself runs in the page's own content script, not here -- the
+// popup can't reach into page DOM directly. Send it the activation message,
+// then close: the popup would otherwise sit on top of the page the user
+// needs to click on.
+pickElementBtn.addEventListener("click", async () => {
+  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+  if (!tab) return;
+  await api.tabs.sendMessage(tab.id, { type: "START_ELEMENT_PICKER" }).catch(() => {});
+  window.close();
 });
 
 init();
