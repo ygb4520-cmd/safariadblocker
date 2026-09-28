@@ -64,6 +64,11 @@
         "id": "annoyances",
         "enabled": true,
         "path": "rules/annoyances.json"
+      },
+      {
+        "id": "antiadblock",
+        "enabled": true,
+        "path": "rules/antiadblock.json"
       }
     ]
   }

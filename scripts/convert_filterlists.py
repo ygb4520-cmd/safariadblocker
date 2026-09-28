@@ -64,6 +64,17 @@ ANNOYANCES_SOURCES = [
     ("https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances-cookies.txt", "annoyances-cookies.txt"),
     ("https://raw.githubusercontent.com/uBlockOrigin/uAssets/master/filters/annoyances-others.txt", "annoyances-others.txt"),
 ]
+# EasyList's own "Adblock Warning Removal List" -- live-checked before adding
+# (200 OK, real ABP syntax, "Last modified" header current as of writing).
+# Mostly @@ exceptions for specific ad-loader scripts on specific sites where
+# blocking them would trip that site's anti-adblock detection, plus some
+# block rules for the detection scripts themselves and ## lines hiding the
+# resulting "please disable your ad blocker" banners. Documented upstream
+# limitation, not ours: only hides *dismissible* nags, doesn't defeat a full
+# content lockout that refuses to show anything until the blocker is off.
+ANTIADBLOCK_SOURCES = [
+    ("https://easylist-downloads.adblockplus.org/antiadblockfilters.txt", "antiadblock.txt"),
+]
 
 # Options that change semantics in ways declarativeNetRequest can't safely
 # replicate via a simple block/allow + urlFilter rule; if present, skip the rule.
@@ -113,6 +124,7 @@ MIN_ABSOLUTE_ENTRIES = {
     # run), so this floor is set well below that real number, not below an
     # assumed-large one like the others.
     "annoyances.json": 50,
+    "antiadblock.json": 200,
     "cosmetic.json": 5000,
 }
 # Also refuse a sudden big drop from whatever's currently shipped, even if
@@ -549,6 +561,8 @@ def main():
                      help="Max rules for malware.json (default 10000). Deliberately smaller than --max-rules: URLhaus/phishing-filter are current-threats-only lists (refreshed twice daily), not broad EasyList-scale coverage, so they need less budget -- and keeping this smaller helps hold the combined enabled-rule total closer to the guaranteed floor.")
     ap.add_argument("--max-annoyances-rules", type=int, default=10000,
                      help="Max rules for annoyances.json (default 10000). uBlock's annoyances lists are mostly cosmetic (##) entries, not network-blocking ones, so the network-rule portion is much smaller than ads/trackers -- kept modest for the same combined-total reason as --max-malware-rules.")
+    ap.add_argument("--max-antiadblock-rules", type=int, default=10000,
+                     help="Max rules for antiadblock.json (default 10000). The Adblock Warning Removal List is a few thousand lines total -- kept modest for the same combined-total reason as --max-malware-rules.")
     ap.add_argument("--max-cosmetic-rules", type=int, default=40000,
                      help="Max combined generic+domain-scoped cosmetic selectors (default 40000). These are just CSS selectors in a JSON file fetched once per page, not subject to DNR limits, but kept bounded to control bundle size and per-page injection cost.")
     ap.add_argument("--offline", action="store_true", help="Reuse previously downloaded raw lists instead of re-downloading.")
@@ -597,9 +611,20 @@ def main():
     if not ok:
         failed_files.append("annoyances.json")
 
+    print("=== Anti-Adblock (EasyList's Adblock Warning Removal List) ===")
+    antiadblock_paths = fetch_sources(ANTIADBLOCK_SOURCES, args.offline)
+    antiadblock_lines = load_lines(antiadblock_paths)
+    antiadblock_rules, aa_blocks_total, aa_allows_total = build_rules(antiadblock_lines, args.max_antiadblock_rules)
+    print(f"  parsed {aa_blocks_total:,} block + {aa_allows_total:,} allow candidate rules")
+    ok = write_ruleset(antiadblock_rules, "antiadblock.json")
+    results.append(("antiadblock.json", len(antiadblock_rules), ok))
+    if not ok:
+        failed_files.append("antiadblock.json")
+
     print("=== Cosmetic (element hiding, from all lists) ===")
     cosmetic_data, cosmetic_total = build_cosmetic_rules(
-        ads_lines + tracker_lines + malware_lines + annoyances_lines, args.max_cosmetic_rules
+        ads_lines + tracker_lines + malware_lines + annoyances_lines + antiadblock_lines,
+        args.max_cosmetic_rules
     )
     print(f"  {len(cosmetic_data['generic']):,} generic + "
           f"{cosmetic_total - len(cosmetic_data['generic']):,} domain-scoped selectors "

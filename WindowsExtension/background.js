@@ -1,9 +1,10 @@
 // Background service worker: owns all declarativeNetRequest state.
 //
 // Categories:
-//  - "ads" / "trackers" / "malware" / "annoyances": static rulesets bundled
-//    at build time (rules/ads.json, rules/trackers.json, rules/malware.json,
-//    rules/annoyances.json). Toggled on/off via updateEnabledRulesets.
+//  - "ads" / "trackers" / "malware" / "annoyances" / "antiadblock": static
+//    rulesets bundled at build time (rules/ads.json, rules/trackers.json,
+//    rules/malware.json, rules/annoyances.json, rules/antiadblock.json).
+//    Toggled on/off via updateEnabledRulesets.
 //  - "custom": static rulesets are immutable once packaged, so user-added
 //    patterns can't be appended to a bundled rules/custom.json at runtime.
 //    Instead, custom rules are implemented as *dynamic* rules
@@ -21,7 +22,7 @@ const CUSTOM_RULE_ID_END = 4999; // inclusive upper bound reserved for custom-pa
 const PAUSE_RULE_ID_START = 5000; // reserved range for per-site pause/allow rules
 
 const DEFAULT_STATE = {
-  rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, custom: true },
+  rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, antiadblock: true, custom: true },
   customPatterns: [], // array of raw pattern strings, e.g. "example.com" or "||ads.example.com^"
   pausedDomains: [], // array of hostnames currently whitelisted
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
@@ -49,7 +50,7 @@ function patternToUrlFilter(pattern) {
 async function syncStaticRulesets(state) {
   const enable = [];
   const disable = [];
-  for (const id of ["ads", "trackers", "malware", "annoyances"]) {
+  for (const id of ["ads", "trackers", "malware", "annoyances", "antiadblock"]) {
     (state.rulesetsEnabled[id] ? enable : disable).push(id);
   }
   await api.declarativeNetRequest.updateEnabledRulesets({

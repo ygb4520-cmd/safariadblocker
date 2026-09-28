@@ -4,6 +4,7 @@ const toggleAds = document.getElementById("toggle-ads");
 const toggleTrackers = document.getElementById("toggle-trackers");
 const toggleMalware = document.getElementById("toggle-malware");
 const toggleAnnoyances = document.getElementById("toggle-annoyances");
+const toggleAntiAdblock = document.getElementById("toggle-antiadblock");
 const toggleCustom = document.getElementById("toggle-custom");
 const togglePopupRedirect = document.getElementById("toggle-popup-redirect");
 const toggleYoutubeSkip = document.getElementById("toggle-youtube-skip");
@@ -107,6 +108,7 @@ async function init() {
   toggleTrackers.checked = !!state.rulesetsEnabled.trackers;
   toggleMalware.checked = state.rulesetsEnabled.malware !== false;
   toggleAnnoyances.checked = state.rulesetsEnabled.annoyances !== false;
+  toggleAntiAdblock.checked = state.rulesetsEnabled.antiadblock !== false;
   toggleCustom.checked = !!state.rulesetsEnabled.custom;
   togglePopupRedirect.checked = state.popupRedirectProtection !== false;
   toggleYoutubeSkip.checked = state.youtubeAdSkip !== false;
@@ -138,6 +140,10 @@ toggleMalware.addEventListener("change", () => {
 
 toggleAnnoyances.addEventListener("change", () => {
   send({ type: "SET_RULESET_ENABLED", ruleset: "annoyances", enabled: toggleAnnoyances.checked });
+});
+
+toggleAntiAdblock.addEventListener("change", () => {
+  send({ type: "SET_RULESET_ENABLED", ruleset: "antiadblock", enabled: toggleAntiAdblock.checked });
 });
 
 toggleCustom.addEventListener("change", () => {

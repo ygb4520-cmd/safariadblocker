@@ -1,9 +1,9 @@
 [Adblock Plus 2.0]
-! Version: 202609280313
+! Version: 202609280348
 ! Title: EasyList
-! Last modified: 28 Sep 2026 03:13 UTC
+! Last modified: 28 Sep 2026 03:48 UTC
 ! Expires: 4 days (update frequency)
-! Commit: 970d457777b8b5a4d112f6ff796fcbb043feca1d
+! Commit: 8d2c399771f9a9740f388aa54eb050196ecb06be
 ! *** easylist:template_header.txt ***
 ! 
 ! Please report any unblocked adverts or problems
@@ -15664,6 +15664,7 @@ browsershots.org#@#.advert_area
 ||1g46ls536.de^
 ||1gbjadpsq.de^
 ||1hkmr7jb0.de^
+||1hvccubn4465g2k.cfd^
 ||1i8c0f11.de^
 ||1igare0jn.de^
 ||1igzn4xcl7fne6b.cfd^
@@ -19591,6 +19592,7 @@ browsershots.org#@#.advert_area
 ||automobiledeem.com^
 ||autonymtootsie.qpon^
 ||autopinales.cfd^
+||autosmingierpinales.cfd^
 ||auusjuyhulimb.space^
 ||auvvmuuqcniqi.space^
 ||auxdciugyclyi.space^
@@ -21413,6 +21415,7 @@ browsershots.org#@#.advert_area
 ||bohmiteupgirt.shop^
 ||bohunkslitotes.cfd^
 ||bohvjrtxqkmrx.space^
+||boienstnqesh.com^
 ||boilingroof.pro^
 ||boipscvjhuyyi.space^
 ||boisekundry.cfd^
@@ -21976,6 +21979,7 @@ browsershots.org#@#.advert_area
 ||bsfwoiljskare.site^
 ||bsgbcdzmvggpc.site^
 ||bsgbd77l.de^
+||bsgefrduwiaxk.site^
 ||bshrdr.com^
 ||bsigxzskaybsw.website^
 ||bsjrnuisjfntu.space^
@@ -23882,6 +23886,7 @@ browsershots.org#@#.advert_area
 ||cmdtubyfwosoa.online^
 ||cmfads.com^
 ||cmiupqlouwnnw.website^
+||cmjwzfzuwisst.site^
 ||cmkhsigydgefs.site^
 ||cmmwpkihpyefy.website^
 ||cmnvawcvhiddm.site^
@@ -26386,6 +26391,7 @@ browsershots.org#@#.advert_area
 ||direeyesightstray.com^
 ||direlyprudysoaring.qpon^
 ||dirigeimpies.cfd^
+||dirndlclacked.cyou^
 ||dirtieramosite.qpon^
 ||dirtinessbeastpotatoes.com^
 ||dirty.games^
@@ -42379,6 +42385,7 @@ browsershots.org#@#.advert_area
 ||muffishsharers.shop^
 ||muffledmy.com^
 ||mufflelengthen.com^
+||mufopuqvafcf.com^
 ||mufpamrilrdfr.site^
 ||muftilooms.qpon^
 ||muggedregent.com^
@@ -43801,6 +43808,7 @@ browsershots.org#@#.advert_area
 ||npftdfmceyenp.website^
 ||nphpfgdf.com^
 ||nphxtgyzxotgf.online^
+||npixaybinazjt.site^
 ||npjdvywxsbtbz.online^
 ||npjozfqmxlror.space^
 ||npksgwynwupzp.space^
@@ -51343,6 +51351,7 @@ browsershots.org#@#.advert_area
 ||rupiticovolo.shop^
 ||rural-report.pro^
 ||rurbancuppen.com^
+||rurlrng5w9ji48blb.rest^
 ||rusenov.com^
 ||rusheehederin.qpon^
 ||rusheesdurns.qpon^
@@ -55747,6 +55756,7 @@ browsershots.org#@#.advert_area
 ||terriergarnice.shop^
 ||terriesorgiacs.cfd^
 ||terrificdark.com^
+||terwkwjxzrrj.com^
 ||tesixsyfkmisv.website^
 ||tesixwsypxacc.online^
 ||teskerekimchi.cfd^

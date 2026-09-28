@@ -1,12 +1,13 @@
 # Ad & Tracker Blocker (Safari Web Extension)
 
 A personal-use Safari Web Extension for macOS that blocks ads, trackers, and
-malware/phishing sites via `declarativeNetRequest`, with six independently
-toggleable categories (Ads, Trackers, Malware/Phishing, Annoyances, Custom
-rules, Pop-ups/Redirects), real cosmetic filtering (not just network
-blocking), YouTube ad mitigation, a per-site "pause" whitelist, settings
-export/import, and a popup UI for managing it all. Built for local use
-through Xcode with a free Apple ID — no paid Developer Program, no App Store.
+malware/phishing sites via `declarativeNetRequest`, with seven independently
+toggleable categories (Ads, Trackers, Malware/Phishing, Annoyances,
+Anti-Adblock, Custom rules, Pop-ups/Redirects), real cosmetic filtering (not
+just network blocking), YouTube ad mitigation, a per-site "pause" whitelist,
+settings export/import, and a popup UI for managing it all. Built for local
+use through Xcode with a free Apple ID — no paid Developer Program, no App
+Store.
 
 ## There's no download button for this one
 
@@ -57,6 +58,7 @@ safariadblocker/
 │       ├── trackers.json          # EasyPrivacy
 │       ├── malware.json           # URLhaus + phishing-filter
 │       ├── annoyances.json        # uBlock Origin's cookie-notice + other-annoyances lists
+│       ├── antiadblock.json       # EasyList's Adblock Warning Removal List
 │       ├── cosmetic.json          # ##/#@# element-hiding rules from all of the above
 │       └── meta.json              # per-file "last updated" timestamps, for the popup's health line
 ├── Ad Tracker Blocker/            # the Xcode project (open this in Xcode)
@@ -151,12 +153,12 @@ launch it from there.
 
 ### 4. Test that it's working
 
-- Click the toolbar icon to open the popup. You should see seven toggles
-  (**Ads**, **Trackers**, **Malware/Phishing**, **Annoyances**, **Custom
-  rules**, **Pop-ups/Redirects**, **YouTube Ad Skip**), a **Pause on this
-  site** toggle, a text box for custom patterns with a pattern counter
-  underneath, and **Export settings** / **Import settings** buttons at the
-  bottom.
+- Click the toolbar icon to open the popup. You should see eight toggles
+  (**Ads**, **Trackers**, **Malware/Phishing**, **Annoyances**,
+  **Anti-Adblock**, **Custom rules**, **Pop-ups/Redirects**, **YouTube Ad
+  Skip**), a **Pause on this site** toggle, a text box for custom patterns
+  with a pattern counter underneath, and **Export settings** / **Import
+  settings** buttons at the bottom.
 - Click **Export settings**, confirm a `.json` file downloads, then click
   **Import settings** and pick that same file back — the popup should
   refresh with everything unchanged (a no-op round trip is the easiest way
@@ -186,19 +188,26 @@ Safari's Extensions settings is on.
 
 ### How the categories work
 
-- **Ads** / **Trackers** / **Malware/Phishing** / **Annoyances**: static
-  `declarativeNetRequest` rulesets bundled at build time (`rules/ads.json` /
-  `rules/trackers.json` / `rules/malware.json` / `rules/annoyances.json`),
-  toggled on/off via `chrome.declarativeNetRequest.updateEnabledRulesets`.
-  Malware/Phishing is its own category (not folded into Ads) since it's a
-  different kind of decision — sourced from [URLhaus](https://urlhaus.abuse.ch/)
-  and [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) via
+- **Ads** / **Trackers** / **Malware/Phishing** / **Annoyances** /
+  **Anti-Adblock**: static `declarativeNetRequest` rulesets bundled at build
+  time (`rules/ads.json` / `rules/trackers.json` / `rules/malware.json` /
+  `rules/annoyances.json` / `rules/antiadblock.json`), toggled on/off via
+  `chrome.declarativeNetRequest.updateEnabledRulesets`. Malware/Phishing is
+  its own category (not folded into Ads) since it's a different kind of
+  decision — sourced from [URLhaus](https://urlhaus.abuse.ch/) and
+  [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) via
   the [malware-filter](https://gitlab.com/malware-filter) project, both
   refreshed twice daily upstream. Annoyances (cookie-consent banners,
   newsletter/social overlays, etc.) is sourced from
   [uBlock Origin's own annoyances lists](https://github.com/uBlockOrigin/uAssets/tree/master/filters) —
   see **Adopting uBlock's lists without uBlock's scriptlet engine** below for
   why only some of uBlock's own list content could be used safely.
+  Anti-Adblock is sourced from EasyList's own
+  [Adblock Warning Removal List](https://github.com/easylist/antiadblockfilters) —
+  it hides the *dismissible* "please disable your ad blocker" nags some
+  sites show, not full lockouts that refuse to show content until you
+  comply (a documented limitation of the upstream list itself, not
+  something this extension adds on top).
 - **Custom rules**: static rulesets are immutable once packaged into the
   extension — there's no API to append rules to a bundled `.json` file at
   runtime. So custom user patterns are implemented as **dynamic rules**
@@ -378,9 +387,10 @@ obvious approach doesn't work:
 
 ### Refreshing the seed rule lists
 
-The bundled `rules/{ads,trackers,malware,annoyances,cosmetic}.json` were
-generated once from live upstream sources — they are **not** auto-updated
-by default. To pull the latest versions and regenerate all of them:
+The bundled `rules/{ads,trackers,malware,annoyances,antiadblock,cosmetic}.json`
+were generated once from live upstream sources — they are **not**
+auto-updated by default. To pull the latest versions and regenerate all of
+them:
 
 ```bash
 python3 scripts/convert_filterlists.py
@@ -394,7 +404,9 @@ Sources, all fetched fresh each run:
 [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) →
 `malware.json`;
 [uBlock Origin's cookie-notices + other-annoyances lists](https://github.com/uBlockOrigin/uAssets/tree/master/filters) →
-`annoyances.json`; the `##`/`#@#` element-hiding lines from all of the above
+`annoyances.json`;
+[EasyList's Adblock Warning Removal List](https://github.com/easylist/antiadblockfilters) →
+`antiadblock.json`; the `##`/`#@#` element-hiding lines from all of the above
 → `cosmetic.json`. Writes to `ExtensionSource/rules/`, the Xcode project's
 copied `Resources/rules/`, and `WindowsExtension/rules/` — so a plain
 rebuild in Xcode (Cmd+B) or just reloading the unpacked Chrome/Edge folder
@@ -402,15 +414,16 @@ picks up the change.
 
 Self-healing: each output file is sanity-checked before being written. If a
 freshly parsed file comes in under a fixed minimum size (e.g. `trackers.json`
-needs at least 2,000 rules — `annoyances.json`'s floor is much lower, 50,
+needs at least 2,000 rules; `annoyances.json`'s floor is much lower, 50,
 since uBlock's annoyances lists are overwhelmingly cosmetic entries and only
-yield ~200 real network rules), or drops more than 50% from whatever's
-currently shipped, the script assumes the upstream fetch failed (a dead
-server returning an HTML error page instead of the real list, a truncated
-download, a changed URL) and **refuses to overwrite that one file** — the
-previous good version stays in place — while still updating whichever other
-files did parse normally. If anything gets refused this way, the script
-exits with a non-zero status so the daily automated run (below) shows up as
+yield ~200 real network rules; `antiadblock.json`'s is 200, comfortably
+below its real ~2,500), or drops more than 50% from whatever's currently
+shipped, the script assumes the upstream fetch failed (a dead server
+returning an HTML error page instead of the real list, a truncated download,
+a changed URL) and **refuses to overwrite that one file** — the previous
+good version stays in place — while still updating whichever other files
+did parse normally. If anything gets refused this way, the script exits
+with a non-zero status so the daily automated run (below) shows up as
 failed in its log instead of silently shipping near-empty rules.
 
 Useful flags:
@@ -418,19 +431,23 @@ Useful flags:
 - `--max-rules N` — cap rules for `ads.json`/`trackers.json` each (default
   `20000`). Important: `declarativeNetRequest`'s `GUARANTEED_MINIMUM_STATIC_RULES`
   (30,000) is a **combined** total across every enabled static ruleset, not
-  per-ruleset — with 4 rulesets (ads/trackers/malware/annoyances) enabled by
-  default, raising this significantly pushes the combined total past what's
-  strictly guaranteed and into the browser's shared "extra" pool. The
-  current defaults (20000 + 20000 + 10000 malware + 10000 annoyances,
-  annoyances rarely comes close to its cap) have been tested working in
-  practice; raise with the combined total in mind, and check current limits
-  in Apple's WebExtensions documentation first.
+  per-ruleset — with 5 rulesets (ads/trackers/malware/annoyances/antiadblock)
+  enabled by default, the real combined total (roughly 20000+20000+10000+
+  ~200+~2,500 ≈ 52,700 at the time of writing) already sits well past the
+  strictly-guaranteed 30,000 and into the browser's shared "extra" pool —
+  this has been true since malware was added and has been tested working in
+  practice each time a category was added since; raise `--max-rules` itself
+  with that in mind, and check current limits in Apple's WebExtensions
+  documentation first.
 - `--max-malware-rules N` — cap for `malware.json` (default `10000`,
   deliberately smaller — URLhaus/phishing-filter are current-threats-only
   lists refreshed twice daily upstream, not broad EasyList-scale coverage).
 - `--max-annoyances-rules N` — cap for `annoyances.json` (default `10000`,
   same reasoning as `--max-malware-rules`; in practice only ~200 of uBlock's
   annoyances-list entries are network rules, the rest are cosmetic).
+- `--max-antiadblock-rules N` — cap for `antiadblock.json` (default `10000`;
+  the Adblock Warning Removal List is a few thousand lines total, well under
+  this cap in practice).
 - `--max-cosmetic-rules N` — cap combined generic + domain-scoped cosmetic
   selectors (default `40000`). Not subject to DNR limits (it's just CSS
   selectors in a JSON file), kept bounded for bundle size and per-page
