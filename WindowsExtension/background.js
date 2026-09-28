@@ -121,6 +121,22 @@ async function syncPauseDynamicRules(state) {
   });
 }
 
+// Wipes every dynamic rule regardless of ID range (not just the custom/pause
+// ranges the two functions above know about), then lets syncAll() rebuild
+// the correct ones from state right after. This is a defensive reset for
+// Safari's on-disk dynamic-rules store, run once per extension startup:
+// dynamic rules are a derived cache of state.customPatterns/pausedDomains,
+// never the source of truth, so clearing it can't lose user settings.
+async function resetDynamicRulesStore() {
+  return withDynamicRulesLock(async () => {
+    const existing = await api.declarativeNetRequest.getDynamicRules();
+    if (existing.length === 0) return;
+    await api.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds: existing.map((r) => r.id),
+    });
+  });
+}
+
 async function syncAll() {
   const state = await getState();
   await Promise.all([
@@ -143,11 +159,13 @@ api.runtime.onInstalled.addListener(async () => {
   if (Object.keys(stored).length === 0) {
     await setState(DEFAULT_STATE);
   }
+  await resetDynamicRulesStore();
   await syncAll();
 });
 
-api.runtime.onStartup?.addListener(() => {
-  syncAll();
+api.runtime.onStartup?.addListener(async () => {
+  await resetDynamicRulesStore();
+  await syncAll();
 });
 
 // Messages from the popup.
