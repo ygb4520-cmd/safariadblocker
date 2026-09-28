@@ -321,6 +321,18 @@ copied `Resources/rules/`, and `WindowsExtension/rules/` — so a plain
 rebuild in Xcode (Cmd+B) or just reloading the unpacked Chrome/Edge folder
 picks up the change.
 
+Self-healing: each of the four output files is sanity-checked before being
+written. If a freshly parsed file comes in under a fixed minimum size (e.g.
+`trackers.json` needs at least 2,000 rules), or drops more than 50% from
+whatever's currently shipped, the script assumes the upstream fetch failed
+(a dead server returning an HTML error page instead of the real list, a
+truncated download, a changed URL) and **refuses to overwrite that one
+file** — the previous good version stays in place — while still updating
+whichever other files did parse normally. If anything gets refused this
+way, the script exits with a non-zero status so the daily automated run
+(below) shows up as failed in its log instead of silently shipping
+near-empty rules.
+
 Useful flags:
 
 - `--max-rules N` — cap rules for `ads.json`/`trackers.json` each (default

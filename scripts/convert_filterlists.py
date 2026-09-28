@@ -84,6 +84,24 @@ TYPE_MAP = {
 # is DNR's default when resourceTypes is omitted anyway.
 IGNORED_OPTIONS = {"popup", "important", "match-case", "badfilter", "elemhide", "generichide", "genericblock", "document", "1p", "3p", "all"}
 
+# Self-healing sanity floors: if a freshly parsed ruleset comes in under
+# these, an upstream fetch almost certainly failed or returned something
+# other than the real list (an HTML error page, a maintenance notice, a
+# truncated download) rather than the list having genuinely shrunk this
+# much overnight. Real-world sizes are far above these -- EasyList alone
+# normally parses to tens of thousands of rules -- so these floors are set
+# low enough to never trip on legitimate day-to-day list churn.
+MIN_ABSOLUTE_ENTRIES = {
+    "ads.json": 5000,
+    "trackers.json": 2000,
+    "malware.json": 500,
+    "cosmetic.json": 5000,
+}
+# Also refuse a sudden big drop from whatever's currently shipped, even if
+# the new count clears the absolute floor above -- catches a partial/
+# truncated fetch that's non-empty but still not the real list.
+MIN_RETENTION_RATIO = 0.5
+
 
 def download(url, dest_path):
     print(f"Downloading {url} ...")
@@ -386,7 +404,44 @@ def load_lines(paths):
     return lines
 
 
-def write_json(data, filename, count_label):
+def existing_entry_count(filename):
+    """Entry count currently on disk for filename, or None if unreadable/absent."""
+    path = os.path.join(OUTPUT_DIR, filename)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return None
+    if filename == "cosmetic.json":
+        return len(data.get("generic", [])) + sum(len(v) for v in data.get("domains", {}).values())
+    return len(data)
+
+
+def validate_count(filename, new_count):
+    """Returns a list of human-readable problems, empty if new_count looks sane."""
+    problems = []
+    min_absolute = MIN_ABSOLUTE_ENTRIES.get(filename, 0)
+    if new_count < min_absolute:
+        problems.append(f"only {new_count:,} entries parsed (below the {min_absolute:,}-entry sanity floor)")
+    existing = existing_entry_count(filename)
+    if existing and new_count < existing * MIN_RETENTION_RATIO:
+        pct = 100 * (1 - new_count / existing)
+        problems.append(f"{pct:.0f}% drop from the {existing:,} entries currently shipped")
+    return problems
+
+
+def write_json(data, filename, count_label, new_count):
+    """Writes filename to all mirrored locations, unless new_count fails
+    validate_count() -- in which case the previous file is left untouched
+    and the caller is told to treat this ruleset as failed."""
+    problems = validate_count(filename, new_count)
+    if problems:
+        print(f"  !! REFUSING to update {filename}: {'; '.join(problems)}")
+        print(f"  !! Leaving the previously shipped {filename} in place.")
+        return False
+
     encoded = json.dumps(data, separators=(",", ":")).encode("utf-8")
     targets = [os.path.join(OUTPUT_DIR, filename)]
     for extra_dir in (XCODE_RESOURCES_RULES_DIR, WINDOWS_RULES_DIR):
@@ -397,10 +452,11 @@ def write_json(data, filename, count_label):
         with open(out_path, "wb") as f:
             f.write(encoded)
         print(f"  -> wrote {count_label} to {out_path} ({len(encoded):,} bytes)")
+    return True
 
 
 def write_ruleset(rules, filename):
-    write_json(rules, filename, f"{len(rules):,} rules")
+    return write_json(rules, filename, f"{len(rules):,} rules", len(rules))
 
 
 def main():
@@ -414,26 +470,31 @@ def main():
     ap.add_argument("--offline", action="store_true", help="Reuse previously downloaded raw lists instead of re-downloading.")
     args = ap.parse_args()
 
+    failed_files = []
+
     print("=== Ads (EasyList) ===")
     ads_paths = fetch_sources(ADS_SOURCES, args.offline)
     ads_lines = load_lines(ads_paths)
     ads_rules, ads_blocks_total, ads_allows_total = build_rules(ads_lines, args.max_rules)
     print(f"  parsed {ads_blocks_total:,} block + {ads_allows_total:,} allow candidate rules")
-    write_ruleset(ads_rules, "ads.json")
+    if not write_ruleset(ads_rules, "ads.json"):
+        failed_files.append("ads.json")
 
     print("=== Trackers (EasyPrivacy) ===")
     tracker_paths = fetch_sources(TRACKER_SOURCES, args.offline)
     tracker_lines = load_lines(tracker_paths)
     tracker_rules, tr_blocks_total, tr_allows_total = build_rules(tracker_lines, args.max_rules)
     print(f"  parsed {tr_blocks_total:,} block + {tr_allows_total:,} allow candidate rules")
-    write_ruleset(tracker_rules, "trackers.json")
+    if not write_ruleset(tracker_rules, "trackers.json"):
+        failed_files.append("trackers.json")
 
     print("=== Malware/Phishing (URLhaus + phishing-filter) ===")
     malware_paths = fetch_sources(MALWARE_SOURCES, args.offline)
     malware_lines = load_lines(malware_paths)
     malware_rules, mw_blocks_total, mw_allows_total = build_rules(malware_lines, args.max_malware_rules)
     print(f"  parsed {mw_blocks_total:,} block + {mw_allows_total:,} allow candidate rules")
-    write_ruleset(malware_rules, "malware.json")
+    if not write_ruleset(malware_rules, "malware.json"):
+        failed_files.append("malware.json")
 
     print("=== Cosmetic (element hiding, from all lists) ===")
     cosmetic_data, cosmetic_total = build_cosmetic_rules(
@@ -442,7 +503,13 @@ def main():
     print(f"  {len(cosmetic_data['generic']):,} generic + "
           f"{cosmetic_total - len(cosmetic_data['generic']):,} domain-scoped selectors "
           f"across {len(cosmetic_data['domains']):,} domains")
-    write_json(cosmetic_data, "cosmetic.json", f"{cosmetic_total:,} cosmetic selectors")
+    if not write_json(cosmetic_data, "cosmetic.json", f"{cosmetic_total:,} cosmetic selectors", cosmetic_total):
+        failed_files.append("cosmetic.json")
+
+    if failed_files:
+        print(f"\nFAILED: {', '.join(failed_files)} looked suspicious and were NOT updated "
+              f"(previous versions left in place). See the REFUSING lines above for why.")
+        sys.exit(1)
 
     print("\nDone. Rebuild the app in Xcode (Cmd+B / Cmd+R) so the new rules are packaged in.")
 
