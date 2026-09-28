@@ -5,6 +5,7 @@
   --muted: #6e6e73;
   --border: #e0e0e2;
   --accent: #007aff;
+  --warn: #d9822b;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -13,6 +14,7 @@
     --bg: #1c1c1e;
     --muted: #9a9a9e;
     --border: #3a3a3c;
+    --warn: #ffb454;
   }
 }
 
@@ -45,6 +47,17 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rules-health {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.rules-health.stale {
+  color: var(--warn);
+  font-weight: 600;
 }
 
 .row {

@@ -154,6 +154,45 @@ function hostnameFromUrl(url) {
   }
 }
 
+// Toolbar-icon badge: shows a pause glyph on tabs whose site is paused, so
+// "did I leave this paused?" is answerable without opening the popup.
+// Badges are per-tab (via the tabId option), so switching tabs or
+// navigating within a tab has to actively refresh it -- there's no
+// automatic "current tab" concept in the action API.
+const PAUSE_BADGE_TEXT = "⏸"; // pause symbol
+const PAUSE_BADGE_COLOR = "#ff9500";
+
+async function updateBadgeForTab(tabId, url) {
+  if (tabId == null) return;
+  const hostname = hostnameFromUrl(url);
+  const state = await getState();
+  const paused = !!hostname && state.pausedDomains.includes(hostname);
+  try {
+    await api.action.setBadgeText({ tabId, text: paused ? PAUSE_BADGE_TEXT : "" });
+    if (paused) {
+      await api.action.setBadgeBackgroundColor({ tabId, color: PAUSE_BADGE_COLOR });
+    }
+  } catch {
+    // Tab may have closed/navigated away before this resolved -- harmless.
+  }
+}
+
+async function updateBadgeForActiveTab() {
+  const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+  if (tab) await updateBadgeForTab(tab.id, tab.url);
+}
+
+api.tabs.onActivated?.addListener(async ({ tabId }) => {
+  const tab = await api.tabs.get(tabId).catch(() => null);
+  if (tab) await updateBadgeForTab(tab.id, tab.url);
+});
+
+api.tabs.onUpdated?.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url || changeInfo.status === "complete") {
+    updateBadgeForTab(tabId, tab.url);
+  }
+});
+
 api.runtime.onInstalled.addListener(async () => {
   const stored = await api.storage.local.get(null);
   if (Object.keys(stored).length === 0) {
@@ -161,11 +200,13 @@ api.runtime.onInstalled.addListener(async () => {
   }
   await resetDynamicRulesStore();
   await syncAll();
+  await updateBadgeForActiveTab();
 });
 
 api.runtime.onStartup?.addListener(async () => {
   await resetDynamicRulesStore();
   await syncAll();
+  await updateBadgeForActiveTab();
 });
 
 // Messages from the popup.
@@ -203,6 +244,7 @@ async function handleMessage(message) {
       if (paused) pausedDomains.push(domain);
       await setState({ pausedDomains });
       await syncPauseDynamicRules({ ...state, pausedDomains });
+      await updateBadgeForActiveTab();
       return { ok: true };
     }
 

@@ -15,6 +15,7 @@ see build_cosmetic_rules(). Re-run this script any time you want to refresh
 all three files from the latest upstream lists.
 """
 import argparse
+import datetime
 import json
 import os
 import re
@@ -459,6 +460,40 @@ def write_ruleset(rules, filename):
     return write_json(rules, filename, f"{len(rules):,} rules", len(rules))
 
 
+META_FILENAME = "meta.json"
+
+
+def load_meta():
+    """meta.json tracks, per rules file, when it was last actually updated
+    and how many entries it had -- so the popup can show "rules last
+    updated" without guessing from file-modified timestamps (which change
+    on every git checkout/build copy, not just real content updates)."""
+    path = os.path.join(OUTPUT_DIR, META_FILENAME)
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def write_meta(meta):
+    """Mirrors meta.json the same three places as write_json, but skips
+    validate_count entirely -- it's bookkeeping, not rule data, so there's
+    nothing to sanity-check before writing it."""
+    encoded = json.dumps(meta, separators=(",", ":")).encode("utf-8")
+    targets = [os.path.join(OUTPUT_DIR, META_FILENAME)]
+    for extra_dir in (XCODE_RESOURCES_RULES_DIR, WINDOWS_RULES_DIR):
+        if os.path.isdir(extra_dir):
+            targets.append(os.path.join(extra_dir, META_FILENAME))
+    for out_path in targets:
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+        with open(out_path, "wb") as f:
+            f.write(encoded)
+    print(f"  -> wrote {META_FILENAME} to {len(targets)} location(s)")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--max-rules", type=int, default=20000,
@@ -471,13 +506,16 @@ def main():
     args = ap.parse_args()
 
     failed_files = []
+    results = []  # (filename, count, success) for every file we attempted
 
     print("=== Ads (EasyList) ===")
     ads_paths = fetch_sources(ADS_SOURCES, args.offline)
     ads_lines = load_lines(ads_paths)
     ads_rules, ads_blocks_total, ads_allows_total = build_rules(ads_lines, args.max_rules)
     print(f"  parsed {ads_blocks_total:,} block + {ads_allows_total:,} allow candidate rules")
-    if not write_ruleset(ads_rules, "ads.json"):
+    ok = write_ruleset(ads_rules, "ads.json")
+    results.append(("ads.json", len(ads_rules), ok))
+    if not ok:
         failed_files.append("ads.json")
 
     print("=== Trackers (EasyPrivacy) ===")
@@ -485,7 +523,9 @@ def main():
     tracker_lines = load_lines(tracker_paths)
     tracker_rules, tr_blocks_total, tr_allows_total = build_rules(tracker_lines, args.max_rules)
     print(f"  parsed {tr_blocks_total:,} block + {tr_allows_total:,} allow candidate rules")
-    if not write_ruleset(tracker_rules, "trackers.json"):
+    ok = write_ruleset(tracker_rules, "trackers.json")
+    results.append(("trackers.json", len(tracker_rules), ok))
+    if not ok:
         failed_files.append("trackers.json")
 
     print("=== Malware/Phishing (URLhaus + phishing-filter) ===")
@@ -493,7 +533,9 @@ def main():
     malware_lines = load_lines(malware_paths)
     malware_rules, mw_blocks_total, mw_allows_total = build_rules(malware_lines, args.max_malware_rules)
     print(f"  parsed {mw_blocks_total:,} block + {mw_allows_total:,} allow candidate rules")
-    if not write_ruleset(malware_rules, "malware.json"):
+    ok = write_ruleset(malware_rules, "malware.json")
+    results.append(("malware.json", len(malware_rules), ok))
+    if not ok:
         failed_files.append("malware.json")
 
     print("=== Cosmetic (element hiding, from all lists) ===")
@@ -503,8 +545,20 @@ def main():
     print(f"  {len(cosmetic_data['generic']):,} generic + "
           f"{cosmetic_total - len(cosmetic_data['generic']):,} domain-scoped selectors "
           f"across {len(cosmetic_data['domains']):,} domains")
-    if not write_json(cosmetic_data, "cosmetic.json", f"{cosmetic_total:,} cosmetic selectors", cosmetic_total):
+    ok = write_json(cosmetic_data, "cosmetic.json", f"{cosmetic_total:,} cosmetic selectors", cosmetic_total)
+    results.append(("cosmetic.json", cosmetic_total, ok))
+    if not ok:
         failed_files.append("cosmetic.json")
+
+    # Update meta.json only for files that actually got (re)written this run --
+    # a refused file keeps its old timestamp/count, correctly reflecting that
+    # it's still serving yesterday's (or older) data.
+    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
+    meta = load_meta()
+    for filename, count, ok in results:
+        if ok:
+            meta[filename] = {"updatedAt": now_iso, "count": count}
+    write_meta(meta)
 
     if failed_files:
         print(f"\nFAILED: {', '.join(failed_files)} looked suspicious and were NOT updated "

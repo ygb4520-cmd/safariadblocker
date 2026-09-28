@@ -164,8 +164,10 @@ launch it from there.
   that domain, and confirm it's blocked; remove it and confirm it loads
   again.
 - Turn on **Pause on this site** on a site you use daily and confirm nothing
-  breaks that the blocker was previously interfering with, then turn it back
-  off.
+  breaks that the blocker was previously interfering with — you should also
+  see an orange pause glyph appear on the toolbar icon itself while that
+  tab is active; switch to a different (non-paused) tab and confirm the
+  glyph disappears. Turn pause back off when done.
 
 If nothing seems blocked at all, double check "Allow Unsigned Extensions" is
 still on (Safari resets it on relaunch) and that the extension toggle in
@@ -195,6 +197,23 @@ Safari's Extensions settings is on.
 - **Pause on this site**: adds a single high-priority dynamic `allow` rule
   scoped to the current tab's domain, which overrides every block rule
   (static or dynamic) regardless of which categories are enabled.
+
+### Health visibility
+
+Two small things so you can tell the extension is actually working without
+digging through logs:
+
+- **Toolbar badge**: a small orange pause glyph appears on the extension's
+  icon whenever the *current tab's* site is paused, so "did I leave this
+  paused?" is answerable at a glance instead of having to open the popup.
+  Updates automatically as you switch tabs or navigate.
+- **"Rules updated" line in the popup**: shows how long ago the block lists
+  were last successfully refreshed (e.g. "Rules updated 3 hrs ago"), read
+  from `rules/meta.json` (written by `convert_filterlists.py`, see below).
+  It shows the *oldest* of the four rule files' timestamps, not the newest
+  — so if one category's refresh has been silently failing (see the
+  self-healing check below) while the others keep updating fine, this line
+  still reflects that and turns orange once it's more than 2 days stale.
 
 ### Cosmetic cleanup (closing the blank space left by blocked ads)
 

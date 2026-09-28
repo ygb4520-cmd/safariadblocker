@@ -46,18 +46,19 @@ Same idea as the Mac version:
 
 - Open the popup (toolbar icon) — you should see **Ads**, **Trackers**,
   **Malware / Phishing**, **Custom rules**, **Pop-ups / Redirects**, and
-  **YouTube Ad Skip** toggles, **Pause on this site**, and the
-  custom-pattern box.
+  **YouTube Ad Skip** toggles, **Pause on this site**, a "Rules updated ..."
+  line, and the custom-pattern box.
 - Visit an ad-heavy site, open DevTools (**F12** or Ctrl+Shift+I) → **Network**
   tab, reload. With everything on, you should see far fewer third-party
   requests (`doubleclick.net`, `google-analytics.com`, etc.) than with
-  **Pause on this site** turned on.
+  **Pause on this site** turned on — which should also show an orange pause
+  glyph on the toolbar icon itself while that tab is active.
 
 ## Refreshing the rules later
 
-`rules/{ads,trackers,malware,cosmetic}.json` here are the exact same files
-generated on the Mac side — a snapshot, not auto-updating. If you want this
-Windows copy to refresh independently later:
+`rules/{ads,trackers,malware,cosmetic,meta}.json` here are the exact same
+files generated on the Mac side — a snapshot, not auto-updating. If you
+want this Windows copy to refresh independently later:
 
 1. Install Python 3 from [python.org](https://www.python.org/downloads/) if
    it's not already on the machine.
@@ -66,9 +67,10 @@ Windows copy to refresh independently later:
    extension itself).
 3. Run `python convert_filterlists.py` from a folder containing this
    `rules/` directory — it'll download fresh EasyList/EasyPrivacy/Peter
-   Lowe's list/URLhaus/phishing-filter and regenerate all four files. See
-   the main project's `README.md` for details; the script is plain Python
-   with no OS-specific code, so it runs the same way on Windows.
+   Lowe's list/URLhaus/phishing-filter and regenerate all five files
+   (including `meta.json`, which drives the popup's "Rules updated" line).
+   See the main project's `README.md` for details; the script is plain
+   Python with no OS-specific code, so it runs the same way on Windows.
 
 ## Credits
 
