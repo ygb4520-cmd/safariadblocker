@@ -73,6 +73,7 @@ safariadblocker/
 └── scripts/
     ├── convert_filterlists.py       # regenerates rules/*.json from all upstream sources
     ├── test_convert_filterlists.py  # automated tests for the parser functions above
+    ├── check_xcode_resources.py     # fails if a Resources/ file isn't wired into the Xcode project
     └── generate_icons.py            # regenerates the toolbar icon PNGs
 ```
 
@@ -553,6 +554,18 @@ Includes a regression test for a real bug caught and fixed earlier in this
 project's history (a `#@#` exception silently failing to counter a *generic*
 selector, the common real-world case) and for the wildcard-domain and
 procedural-selector fixes made while adding uBlock's annoyances lists.
+
+A separate check guards the Xcode project itself. Top-level files in the
+extension's `Resources/` folder (unlike the `icons/` and `rules/` folder
+references) must be listed in `project.pbxproj` by hand, and forgetting one
+makes the build succeed while silently leaving the file out of the app:
+
+```bash
+python3 scripts/check_xcode_resources.py
+```
+
+It also confirms `ExtensionSource/` and `Resources/` copies are identical.
+`scripts/build_and_install.sh` runs it before building.
 
 What the converter does and doesn't translate (network rules):
 

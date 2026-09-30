@@ -19,6 +19,10 @@ PROJECT_DIR="$REPO_ROOT/Ad Tracker Blocker"
 DERIVED_DATA_APP="$HOME/Library/Developer/Xcode/DerivedData/Ad_Tracker_Blocker-cbndxuajqtnoigezzlqghcmyqkzq/Build/Products/Debug/Ad Tracker Blocker.app"
 INSTALLED_APP="$HOME/Applications/Ad Tracker Blocker.app"
 
+# Catch a file that was added to Resources/ but never wired into the Xcode
+# project (the build would succeed and silently ship without it).
+python3 "$REPO_ROOT/scripts/check_xcode_resources.py"
+
 cd "$PROJECT_DIR"
 xcodebuild -project "Ad Tracker Blocker.xcodeproj" -scheme "Ad Tracker Blocker" -configuration Debug build
 
