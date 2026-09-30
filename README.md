@@ -53,6 +53,7 @@ safariadblocker/
 │   ├── content.js                 # cosmetic filtering, pop-up/redirect protection
 │   ├── youtube-skip.js            # YouTube-only: ad speed-up/mute (see README section)
 │   ├── popup.html / popup.css / popup.js
+│   ├── elements.html / elements.js  # the hidden-elements manager window
 │   ├── stats.html / stats.js      # the small "How we're doing" window opened from the popup
 │   ├── icons/                    # toolbar icons
 │   └── rules/
@@ -183,8 +184,7 @@ launch it from there.
   should see a red outline follow your cursor), click it (it should
   disappear immediately and a "Hide this element on this site?" bar should
   appear at the bottom), then click **Hide it**. Reload the page and
-  confirm it's still hidden; find it listed under **Custom hidden
-  elements** in the popup and click **Remove** to confirm it comes back.
+  confirm it's still hidden; open **Manage hidden elements**, find it in the list and click **Remove** to confirm it comes back.
 - Turn on **Pause on this site** on a site you use daily and confirm nothing
   breaks that the blocker was previously interfering with (see the icon
   and badge check above for what "paused" looks like). Turn pause back off
@@ -351,9 +351,11 @@ page, same idea as uBlock Origin's picker/zapper tool:
    without saving anything.
 
 Rules are per-site (matched against the current hostname and its parent
-domains, same `hostnameSuffixes` logic as the real filter data), listed
-under **Custom hidden elements** in the popup with a **Remove** button each,
-and included in settings export/import like everything else. Top frame
+domains, same `hostnameSuffixes` logic as the real filter data). The popup's
+**Manage hidden elements** link opens them in their own small window
+(`elements.html`) with a **Remove** button each and a **Show only this
+site** filter that's on by default (uncheck it to see every site's rules);
+they're included in settings export/import like everything else. Top frame
 only — an element inside a nested iframe can't be picked directly, same
 limitation as the real cosmetic-filter loading above.
 

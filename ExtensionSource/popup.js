@@ -21,7 +21,7 @@ const importBtn = document.getElementById("import-settings");
 const importFileInput = document.getElementById("import-file-input");
 const importStatus = document.getElementById("importStatus");
 const pickElementBtn = document.getElementById("pick-element");
-const cosmeticList = document.getElementById("cosmetic-list");
+const openElementsBtn = document.getElementById("open-elements");
 const openStatsBtn = document.getElementById("open-stats");
 
 let activeHostname = null;
@@ -54,28 +54,6 @@ function renderCustomList(patterns) {
     ? `${patterns.length} / ${customRuleCap} patterns -- the last ${patterns.length - customRuleCap} aren't being enforced`
     : `${patterns.length} / ${customRuleCap} patterns`;
   customCount.classList.toggle("over-cap", overCap);
-}
-
-function renderCosmeticList(rules) {
-  cosmeticList.innerHTML = "";
-  for (const rule of rules) {
-    const li = document.createElement("li");
-    const span = document.createElement("span");
-    span.textContent = `${rule.hostname}: ${rule.selector}`;
-    span.title = span.textContent;
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Remove";
-    removeBtn.addEventListener("click", async () => {
-      const res = await send({
-        type: "REMOVE_CUSTOM_COSMETIC_RULE",
-        hostname: rule.hostname,
-        selector: rule.selector,
-      });
-      renderCosmeticList(res.customCosmeticRules);
-    });
-    li.append(span, removeBtn);
-    cosmeticList.appendChild(li);
-  }
 }
 
 // rules/meta.json is written by scripts/convert_filterlists.py -- one
@@ -150,7 +128,6 @@ async function init() {
   }
 
   renderCustomList(state.customPatterns);
-  renderCosmeticList(state.customCosmeticRules || []);
   loadRulesHealth();
 }
 
@@ -263,6 +240,11 @@ pickElementBtn.addEventListener("click", async () => {
 // background.js (which also records which tab/site the user was on, since
 // the new window's own "active tab" would just be itself), then the popup
 // closes and the small stats window takes its place.
+openElementsBtn.addEventListener("click", async () => {
+  await send({ type: "OPEN_ELEMENTS_WINDOW" });
+  window.close();
+});
+
 openStatsBtn.addEventListener("click", async () => {
   await send({ type: "OPEN_STATS_WINDOW" });
   window.close();

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hidden elements</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body class="stats-body">
+  <header>
+    <h1>Hidden elements</h1>
+    <div id="elementsSite" class="site-label">—</div>
+  </header>
+
+  <section class="custom-section">
+    <label class="switch-row">
+      <span>Show only this site</span>
+      <input type="checkbox" id="filter-this-site" checked />
+    </label>
+    <div id="elementsEmpty" class="hint"></div>
+    <ul id="cosmetic-list"></ul>
+  </section>
+
+  <script src="elements.js"></script>
+</body>
+</html>

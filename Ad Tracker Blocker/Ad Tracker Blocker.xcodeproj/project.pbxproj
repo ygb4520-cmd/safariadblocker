@@ -29,6 +29,8 @@
 		28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */ = {isa = PBXBuildFile; fileRef = EA87E66B6E2A412D5D11C12D /* youtube-skip.js */; };
 		AAD8163C73048B63C2531933 /* stats.html in Resources */ = {isa = PBXBuildFile; fileRef = 6651E6C8F6889CE81FAC08B5 /* stats.html */; };
 		CFFEC6DDC2010A7356527C20 /* stats.js in Resources */ = {isa = PBXBuildFile; fileRef = 5EFA5189F48522C02E1A7B38 /* stats.js */; };
+		7E06BBF34637E47563D729B4 /* elements.html in Resources */ = {isa = PBXBuildFile; fileRef = 7AE0CB20D842129AFF9C6060 /* elements.html */; };
+		1940C71C1B7C2F0913E9663B /* elements.js in Resources */ = {isa = PBXBuildFile; fileRef = CC31F75341DA3F8B1A6B549C /* elements.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +83,8 @@
 		EA87E66B6E2A412D5D11C12D /* youtube-skip.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "youtube-skip.js"; path = "Resources/youtube-skip.js"; sourceTree = "<group>"; };
 		6651E6C8F6889CE81FAC08B5 /* stats.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "stats.html"; path = "Resources/stats.html"; sourceTree = "<group>"; };
 		5EFA5189F48522C02E1A7B38 /* stats.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "stats.js"; path = "Resources/stats.js"; sourceTree = "<group>"; };
+		7AE0CB20D842129AFF9C6060 /* elements.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "elements.html"; path = "Resources/elements.html"; sourceTree = "<group>"; };
+		CC31F75341DA3F8B1A6B549C /* elements.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "elements.js"; path = "Resources/elements.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -168,6 +172,8 @@
 				EA87E66B6E2A412D5D11C12D /* youtube-skip.js */,
 				6651E6C8F6889CE81FAC08B5 /* stats.html */,
 				5EFA5189F48522C02E1A7B38 /* stats.js */,
+				7AE0CB20D842129AFF9C6060 /* elements.html */,
+				CC31F75341DA3F8B1A6B549C /* elements.js */,
 			);
 			name = Resources;
 			path = "Ad Tracker Blocker Extension";
@@ -284,6 +290,8 @@
 				28760B6EF7043365B1680F0C /* youtube-skip.js in Resources */,
 				AAD8163C73048B63C2531933 /* stats.html in Resources */,
 				CFFEC6DDC2010A7356527C20 /* stats.js in Resources */,
+				7E06BBF34637E47563D729B4 /* elements.html in Resources */,
+				1940C71C1B7C2F0913E9663B /* elements.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

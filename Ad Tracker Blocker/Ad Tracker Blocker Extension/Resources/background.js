@@ -340,6 +340,20 @@ async function handleMessage(message) {
       return { ok: true };
     }
 
+    case "OPEN_ELEMENTS_WINDOW": {
+      const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+      const query = new URLSearchParams();
+      const host = tab?.url ? hostnameFromUrl(tab.url) : null;
+      if (host) query.set("host", host);
+      await api.windows.create({
+        url: `${api.runtime.getURL("elements.html")}?${query}`,
+        type: "popup",
+        width: 340,
+        height: 360,
+      });
+      return { ok: true };
+    }
+
     case "OPEN_STATS_WINDOW": {
       const [tab] = await api.tabs.query({ active: true, currentWindow: true });
       const query = new URLSearchParams();
