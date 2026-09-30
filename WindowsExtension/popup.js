@@ -236,18 +236,14 @@ pickElementBtn.addEventListener("click", async () => {
   window.close();
 });
 
-// Same reasoning as the picker above: the window is opened from
-// background.js (which also records which tab/site the user was on, since
-// the new window's own "active tab" would just be itself), then the popup
-// closes and the small stats window takes its place.
-openElementsBtn.addEventListener("click", async () => {
-  await send({ type: "OPEN_ELEMENTS_WINDOW" });
-  window.close();
+// These views replace the popup's own contents (each has a Back link)
+// rather than opening a separate window.
+openElementsBtn.addEventListener("click", () => {
+  location.href = "elements.html";
 });
 
-openStatsBtn.addEventListener("click", async () => {
-  await send({ type: "OPEN_STATS_WINDOW" });
-  window.close();
+openStatsBtn.addEventListener("click", () => {
+  location.href = "stats.html";
 });
 
 init();

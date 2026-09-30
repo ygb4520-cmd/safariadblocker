@@ -310,3 +310,9 @@ button:active {
 .stats-table td.stat-value.muted {
   opacity: 0.6;
 }
+
+.back-link {
+  display: inline-block;
+  margin: 0 0 6px;
+  text-decoration: none;
+}

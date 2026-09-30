@@ -1,11 +1,5 @@
 const api = globalThis.browser || globalThis.chrome;
 
-// This page opens in its own small window, so "the active tab" here would be
-// this window itself -- background.js passes the site the user was actually
-// on via the URL when it opens us.
-const params = new URLSearchParams(location.search);
-const originHost = params.get("host") || null;
-
 const CATEGORIES = [
   { id: "ads", label: "Ads", file: "ads.json" },
   { id: "trackers", label: "Trackers", file: "trackers.json" },
@@ -46,12 +40,12 @@ async function loadMeta() {
 }
 
 async function init() {
-  document.getElementById("statsSite").textContent = originHost || "No active site";
-
-  const [{ state }, meta] = await Promise.all([
+  const [{ state, activeHostname }, meta] = await Promise.all([
     api.runtime.sendMessage({ type: "GET_STATE" }),
     loadMeta(),
   ]);
+
+  document.getElementById("statsSite").textContent = activeHostname || "No active site";
 
   const categoryTable = document.getElementById("categoryTable");
   for (const cat of CATEGORIES) {

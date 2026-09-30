@@ -1,13 +1,10 @@
 const api = globalThis.browser || globalThis.chrome;
 
-// Opened in its own small window, so background.js passes the site the user
-// was on via the URL (this window's own "active tab" would be itself).
-const originHost = new URLSearchParams(location.search).get("host") || null;
-
 const filterBox = document.getElementById("filter-this-site");
 const listEl = document.getElementById("cosmetic-list");
 const emptyEl = document.getElementById("elementsEmpty");
 let allRules = [];
+let originHost = null;
 
 // A rule saved for example.com also applies on sub.example.com -- same
 // parent-domain matching content.js uses, so "this site" means what it does
@@ -49,13 +46,14 @@ function render() {
 }
 
 async function init() {
+  const { state, activeHostname } = await api.runtime.sendMessage({ type: "GET_STATE" });
+  originHost = activeHostname;
   document.getElementById("elementsSite").textContent = originHost || "No active site";
   if (!originHost) {
     // Nothing to filter by (e.g. opened from a blank tab) -- show everything.
     filterBox.checked = false;
     filterBox.disabled = true;
   }
-  const { state } = await api.runtime.sendMessage({ type: "GET_STATE" });
   allRules = state.customCosmeticRules || [];
   render();
 }

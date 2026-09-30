@@ -53,8 +53,8 @@ safariadblocker/
 │   ├── content.js                 # cosmetic filtering, pop-up/redirect protection
 │   ├── youtube-skip.js            # YouTube-only: ad speed-up/mute (see README section)
 │   ├── popup.html / popup.css / popup.js
-│   ├── elements.html / elements.js  # the hidden-elements manager window
-│   ├── stats.html / stats.js      # the small "How we're doing" window opened from the popup
+│   ├── elements.html / elements.js  # the hidden-elements manager view
+│   ├── stats.html / stats.js      # the "How we're doing" view opened from the popup
 │   ├── icons/                    # toolbar icons
 │   └── rules/
 │       ├── ads.json               # EasyList + Peter Lowe's list
@@ -309,26 +309,30 @@ perfect (the real filter data still won't cover every site, and the
 heuristic layer is a heuristic), but between the two, coverage should be
 close to what a mainstream ad blocker achieves for cosmetic hiding.
 
-### "See how we're doing" stats window
+### "See how we're doing" and "Manage hidden elements" views
 
-The popup's **See how we're doing** link closes the popup and opens a
-separate small window (`stats.html`, via `windows.create` with
-`type: "popup"`) showing each category's on/off state with its rule count
-and how long ago it was refreshed (from `rules/meta.json` — the popup's single "oldest file"
-line, broken out per file), and counts of your own custom patterns, hidden
-elements, and paused sites.
+Both are links in the popup that swap the popup's own contents for another
+page (`stats.html`, `elements.html`) with a **Back** link — not separate
+windows. (They started as separate `windows.create` windows and were
+changed to in-popup views.) They find out which site you're on by asking
+`background.js` (`GET_STATE`'s `activeHostname`), since inside the popup
+"the active tab of the current window" is the page you were looking at.
 
-The new window's own "active tab" is itself, so `background.js` passes the
-hostname of the site you were on through the URL when it opens the window.
-(A per-page blocked count used to be here too, read from the toolbar badge
-text; it went away with the badge counter.)
+- **How we're doing**: each category's on/off state with its rule count and
+  how long ago it was refreshed (from `rules/meta.json` — the popup's
+  single "oldest file" line, broken out per file), plus counts of your own
+  custom patterns, hidden elements, and paused sites.
+- **Manage hidden elements**: your element-picker rules, each with a
+  **Remove** button, and a **Show only this site** filter that's on by
+  default (uncheck it to see every site's rules; rules match the same way
+  `content.js` applies them, so a rule for `example.com` counts as "this
+  site" on `sub.example.com` too).
 
-**Why several popup buttons go through `background.js`:** the popup's JS
-context can be torn down by `window.close()` before an in-flight message
-actually reaches the browser's messaging layer, silently dropping it. Both
-this and the element picker's button send a message to `background.js`
-(long-lived, unaffected by the popup closing), wait for its response, and
-only then close.
+**Why the element-picker button goes through `background.js`:** the popup's
+JS context can be torn down by `window.close()` before an in-flight message
+reaches the browser's messaging layer, silently dropping it. The button
+messages `background.js` (long-lived), waits for its response, and only
+then closes.
 
 ### Element picker (hide anything yourself, no CSS needed)
 
@@ -352,7 +356,7 @@ page, same idea as uBlock Origin's picker/zapper tool:
 
 Rules are per-site (matched against the current hostname and its parent
 domains, same `hostnameSuffixes` logic as the real filter data). The popup's
-**Manage hidden elements** link opens them in their own small window
+**Manage hidden elements** link opens them in their own view
 (`elements.html`) with a **Remove** button each and a **Show only this
 site** filter that's on by default (uncheck it to see every site's rules);
 they're included in settings export/import like everything else. Top frame
