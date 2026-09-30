@@ -621,6 +621,8 @@ free to use under their respective licenses:
 - [Peter Lowe's Ad and tracking server list](https://pgl.yoyo.org/adservers/)
 - [URLhaus](https://urlhaus.abuse.ch/) (abuse.ch) — malware URLs
 - [phishing-filter](https://gitlab.com/malware-filter/phishing-filter) — phishing URLs
+- [uBlock Origin's annoyances lists](https://github.com/uBlockOrigin/uAssets/tree/master/filters) (uAssets) — cookie notices and other annoyances
+- [EasyList's Adblock Warning Removal List](https://github.com/easylist/antiadblockfilters) — anti-adblock-detection nags
 
 See each project's own site for its current license terms before
 redistributing the generated `rules/*.json` files outside this project.
