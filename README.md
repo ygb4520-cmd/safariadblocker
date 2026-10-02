@@ -631,6 +631,15 @@ under `Ad Tracker Blocker Extension/Resources/icons/` and
 do, make sure to also provide `-paused` variants at each size, or the
 paused-state icon swap will silently fail to find them.
 
+## Troubleshooting: popup button does nothing after a rebuild
+
+Rebuilding replaces the extension, but tabs that were already open keep
+running the old, disconnected copy of the page script -- so popup actions
+like **Pick element to hide** silently do nothing there. **Reload the tab**
+after any rebuild/update. If the extension itself is missing from Safari's
+Extensions list, run `open ~/Applications/"Ad Tracker Blocker.app"` and wait
+up to ~30 seconds for it to re-register.
+
 ## Credits
 
 This extension's own code is original, but the blocking data it ships with
