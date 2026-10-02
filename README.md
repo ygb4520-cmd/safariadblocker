@@ -662,4 +662,3 @@ redistributing the generated `rules/*.json` files outside this project.
 ## Support / Feedback
 
 Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/safariadblocker/issues
-Questions? Open an issue on GitHub.
