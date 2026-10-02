@@ -70,6 +70,7 @@ safariadblocker/
 │   └── Ad Tracker Blocker Extension/        # Safari Web Extension target
 │       └── Resources/             # COPY of ExtensionSource — see note below
 ├── WindowsExtension/               # COPY of ExtensionSource for Chrome/Edge, no build step
+│   └── updater/                    # optional Windows Task Scheduler auto-update (PowerShell + a copy of the converter)
 └── scripts/
     ├── convert_filterlists.py       # regenerates rules/*.json from all upstream sources
     ├── test_convert_filterlists.py  # automated tests for the parser functions above

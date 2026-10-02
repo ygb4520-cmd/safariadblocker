@@ -64,25 +64,42 @@ Same idea as the Mac version:
   **Pause on this site** turned on — which should also switch the toolbar
   icon itself to a grayed-out version while that tab is active.
 
-## Refreshing the rules later
+## Automatic rule updates (optional, one-time setup)
 
-`rules/{ads,trackers,malware,annoyances,antiadblock,cosmetic,meta}.json`
-here are the exact same files generated on the Mac side — a snapshot, not
-auto-updating. If you want this Windows copy to refresh independently
-later:
+Like the Mac version's daily refresh, this folder can update its own rules.
+Chrome/Edge don't let an extension replace its own bundled files, so a small
+helper on this PC does the downloading and the extension reloads itself when
+it sees new rules.
 
-1. Install Python 3 from [python.org](https://www.python.org/downloads/) if
-   it's not already on the machine.
-2. Copy `scripts/convert_filterlists.py` from the main project over too (it
-   wasn't included in this package since it's a dev tool, not part of the
-   extension itself).
-3. Run `python convert_filterlists.py` from a folder containing this
-   `rules/` directory — it'll download fresh EasyList/EasyPrivacy/Peter
-   Lowe's list/URLhaus/phishing-filter/uBlock's annoyances lists/EasyList's
-   Adblock Warning Removal List and regenerate all seven files (including
-   `meta.json`, which drives the popup's "Rules updated" line). See the
-   main project's `README.md` for details; the script is plain Python with
-   no OS-specific code, so it runs the same way on Windows.
+1. Install Python 3 from [python.org](https://www.python.org/downloads/)
+   (tick **Add python.exe to PATH**).
+2. In PowerShell, from this folder's `updater` subfolder, run:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File install-updater.ps1
+   ```
+
+   This creates a Task Scheduler task, **AdTrackerBlockerRulesUpdate**, that
+   runs `update-rules.ps1` every day at 9:00 AM (or as soon as the PC is next
+   on, if it was off). No admin rights needed.
+3. Test it right away: `Start-ScheduledTask -TaskName AdTrackerBlockerRulesUpdate`
+   then look at `updater\logs\update-<date>.log`. The popup's "Rules updated
+   ..." line should say "just now" once it finishes.
+
+How it works: `update-rules.ps1` runs the same `convert_filterlists.py` as
+the Mac, writing straight into this folder's `rules\`. The converter's
+self-healing check refuses to overwrite a rules file with an empty or
+much-smaller download, so a bad day keeps yesterday's rules. It writes
+`meta.json` **last**; the extension checks that file whenever you load a
+page (at most every 30 minutes) and when the browser starts, and calls
+`chrome.runtime.reload()` if it changed. Pages that were already open before
+the reload need a refresh (same as after any extension reload).
+
+To remove it: `powershell -ExecutionPolicy Bypass -File uninstall-updater.ps1`.
+You can also run `update-rules.ps1` by hand any time.
+
+> This updater has been written but not run on a real Windows machine yet --
+> if the first run fails, the log file in `updater\logs` says why.
 
 ## Credits
 

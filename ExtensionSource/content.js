@@ -303,6 +303,9 @@
   if (window.top === window.self) {
     loadCosmeticRules();
     loadCustomCosmeticRules();
+    // Chrome/Edge only (Safari defines window.browser): let background.js
+    // check whether the Windows updater has refreshed the rules on disk.
+    if (!window.browser) api.runtime.sendMessage({ type: "CHECK_RULE_UPDATE" }).catch(() => {});
   }
 
   // --- Element picker ---------------------------------------------------

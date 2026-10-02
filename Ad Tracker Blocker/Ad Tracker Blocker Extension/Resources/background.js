@@ -252,9 +252,45 @@ api.tabs.onUpdated?.addListener((tabId, changeInfo, tab) => {
   }
 });
 
+// Chrome/Edge (Windows) only: the Windows updater (WindowsExtension/updater/)
+// rewrites rules/*.json on disk, finishing with meta.json. A static ruleset
+// is only re-read when the extension reloads, so notice that meta.json
+// changed and reload ourselves. Safari is excluded (it defines `browser`):
+// its bundled rules only ever change via a rebuild, which replaces the
+// whole extension anyway. Throttled, and the new signature is saved *before*
+// reloading so this can't loop.
+const RULE_META_SIGNATURE_KEY = "ruleMetaSignature";
+const RULE_CHECK_MIN_INTERVAL_MS = 30 * 60 * 1000;
+let lastRuleCheckAt = 0;
+
+async function checkForRuleUpdate() {
+  if (globalThis.browser) return;
+  const now = Date.now();
+  if (now - lastRuleCheckAt < RULE_CHECK_MIN_INTERVAL_MS) return;
+  lastRuleCheckAt = now;
+  try {
+    const res = await fetch(api.runtime.getURL("rules/meta.json"), { cache: "no-store" });
+    if (!res.ok) return;
+    const signature = await res.text();
+    const stored = await api.storage.local.get(RULE_META_SIGNATURE_KEY);
+    if (stored[RULE_META_SIGNATURE_KEY] === signature) return;
+    await api.storage.local.set({ [RULE_META_SIGNATURE_KEY]: signature });
+    // First run just records the baseline; only a *change* reloads.
+    if (stored[RULE_META_SIGNATURE_KEY] !== undefined) api.runtime.reload();
+  } catch {
+    // Missing/unreadable meta.json just means no update check this time.
+  }
+}
+
+checkForRuleUpdate();
+
 api.runtime.onInstalled.addListener(async () => {
   const stored = await api.storage.local.get(null);
-  if (Object.keys(stored).length === 0) {
+  // Ignore the update-check bookkeeping key: it can be written (at service
+  // worker start) before this first-install handler runs, and must not make
+  // a brand-new install look like it already has saved settings.
+  const settingKeys = Object.keys(stored).filter((k) => k !== RULE_META_SIGNATURE_KEY);
+  if (settingKeys.length === 0) {
     await setState(DEFAULT_STATE);
   }
   await resetDynamicRulesStore();
@@ -264,6 +300,7 @@ api.runtime.onInstalled.addListener(async () => {
 });
 
 api.runtime.onStartup?.addListener(async () => {
+  checkForRuleUpdate();
   await resetDynamicRulesStore();
   await syncAll();
   await disableBlockCountBadge();
@@ -280,6 +317,14 @@ async function handleMessage(message) {
   const state = await getState();
 
   switch (message.type) {
+    case "CHECK_RULE_UPDATE": {
+      // Sent by content.js on page loads (Chrome/Edge only) -- a cheap way to
+      // wake this service worker regularly without needing the alarms
+      // permission. Throttled inside checkForRuleUpdate().
+      checkForRuleUpdate();
+      return { ok: true };
+    }
+
     case "GET_STATE": {
       let activeHostname = null;
       const [tab] = await api.tabs.query({ active: true, currentWindow: true });
