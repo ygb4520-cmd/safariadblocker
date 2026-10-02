@@ -348,9 +348,12 @@
     return parts.length ? parts.join(" > ") : el.tagName.toLowerCase();
   }
 
+  const PICKER_BAR_EVENTS = ["pointerdown", "mousedown", "mouseup", "touchstart", "click"];
   let pickerActive = false;
   let pickerOverlay = null;
   let pickerConfirmBar = null;
+  let pickerConfirmBtn = null;
+  let pickerCancelBtn = null;
   let pickerTarget = null;
   let pickerTargetPreviousDisplay = "";
   let pickerAwaitingConfirm = false; // true once a target's been clicked and the confirm bar is up
@@ -369,14 +372,38 @@
   }
 
   function pickerOnMouseMove(event) {
-    if (pickerAwaitingConfirm) return; // don't keep re-highlighting once a target's been picked
+    if (!pickerActive || pickerAwaitingConfirm) return; // don't keep re-highlighting once a target's been picked
     const el = document.elementFromPoint(event.clientX, event.clientY);
     if (!el || pickerIsOwnElement(el)) return;
     pickerTarget = el;
     pickerHighlight(el);
   }
 
+  // Once the confirm bar is up, route every pointer event by *coordinates*
+  // rather than trusting event.target. On some sites (observed on mlb.com)
+  // the bar's buttons stopped receiving clicks even though the bar was
+  // visibly on top -- a page-level handler or an inherited pointer-events
+  // rule can redirect the event elsewhere, so a plain button click listener
+  // never fires. Registered on window in the capture phase so it runs as
+  // early as the browser allows.
+  function pickerPointInRect(event, el) {
+    const r = el.getBoundingClientRect();
+    return event.clientX >= r.left && event.clientX <= r.right &&
+      event.clientY >= r.top && event.clientY <= r.bottom;
+  }
+
+  function pickerOnBarPointer(event) {
+    if (!pickerAwaitingConfirm || !pickerConfirmBar) return;
+    if (!pickerPointInRect(event, pickerConfirmBar)) return;
+    event.stopImmediatePropagation();
+    if (event.type !== "click") return;
+    event.preventDefault();
+    if (pickerPointInRect(event, pickerConfirmBtn)) pickerConfirm();
+    else if (pickerPointInRect(event, pickerCancelBtn)) pickerCancel();
+  }
+
   function pickerOnClick(event) {
+    if (!pickerActive) return;
     // This runs on the capture phase, before the click reaches its actual
     // target -- if that target is our own confirm/cancel button, don't
     // preventDefault/stopPropagation here, or the button's own click
@@ -403,19 +430,25 @@
   }
 
   function pickerOnKeyDown(event) {
+    if (!pickerActive) return;
     if (event.key === "Escape") pickerCancel();
+    // Keyboard fallback so confirming never depends on the bar being clickable.
+    else if (event.key === "Enter" && pickerAwaitingConfirm) {
+      event.preventDefault();
+      event.stopPropagation();
+      pickerConfirm();
+    }
   }
 
   function pickerCleanup() {
     pickerActive = false;
     pickerAwaitingConfirm = false;
-    document.removeEventListener("mousemove", pickerOnMouseMove, true);
-    document.removeEventListener("click", pickerOnClick, true);
-    document.removeEventListener("keydown", pickerOnKeyDown, true);
     if (pickerOverlay) pickerOverlay.remove();
     if (pickerConfirmBar) pickerConfirmBar.remove();
     pickerOverlay = null;
     pickerConfirmBar = null;
+    pickerConfirmBtn = null;
+    pickerCancelBtn = null;
     pickerTarget = null;
   }
 
@@ -452,9 +485,9 @@
       "position:fixed;z-index:2147483647;bottom:20px;left:50%;transform:translateX(-50%);" +
       "background:#1c1c1e;color:#fff;padding:10px 14px;border-radius:10px;" +
       "font:13px -apple-system,BlinkMacSystemFont,sans-serif;display:none;align-items:center;gap:10px;" +
-      "box-shadow:0 4px 16px rgba(0,0,0,0.35);";
+      "white-space:nowrap;width:max-content;max-width:94vw;box-shadow:0 4px 16px rgba(0,0,0,0.35);pointer-events:auto;";
     const label = document.createElement("span");
-    label.textContent = "Hide this element on this site?";
+    label.textContent = "Hide this element on this site? (Enter = hide, Esc = cancel)";
     const confirmBtn = document.createElement("button");
     confirmBtn.textContent = "Hide it";
     confirmBtn.style.cssText =
@@ -473,12 +506,25 @@
       e.stopPropagation();
       pickerCancel();
     });
+    pickerConfirmBtn = confirmBtn;
+    pickerCancelBtn = cancelBtn;
     pickerConfirmBar.append(label, confirmBtn, cancelBtn);
     document.documentElement.appendChild(pickerConfirmBar);
 
-    document.addEventListener("mousemove", pickerOnMouseMove, true);
-    document.addEventListener("click", pickerOnClick, true);
-    document.addEventListener("keydown", pickerOnKeyDown, true);
+  }
+
+  // Registered once, at load, rather than per pick: this script runs at
+  // document_start, so listeners added here sit *ahead of* any the page adds
+  // later on window's capture phase. Registering them only when the picker
+  // starts left them behind the page's own -- and a page that calls
+  // stopImmediatePropagation on clicks (seen on mlb.com) then swallowed the
+  // confirm bar's clicks before these ever ran. Both are no-ops unless a
+  // pick is in progress.
+  if (window.top === window.self) {
+    for (const type of PICKER_BAR_EVENTS) window.addEventListener(type, pickerOnBarPointer, true);
+    window.addEventListener("keydown", pickerOnKeyDown, true);
+    window.addEventListener("mousemove", pickerOnMouseMove, true);
+    window.addEventListener("click", pickerOnClick, true);
   }
 
   api.runtime.onMessage.addListener((message) => {

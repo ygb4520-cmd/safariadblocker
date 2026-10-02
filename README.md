@@ -355,6 +355,13 @@ page, same idea as uBlock Origin's picker/zapper tool:
    picker exits. **Cancel** (or Escape) restores the element and exits
    without saving anything.
 
+   You can also press **Enter** to hide or **Escape** to cancel. The bar's
+   clicks are routed by screen coordinates from listeners registered on
+   `window` at `document_start`, ahead of any the page adds -- on mlb.com a
+   page-level handler swallowed clicks before they reached the buttons, so
+   the bar used to be unclickable there (Enter/Escape and this routing are
+   the fix).
+
 Rules are per-site (matched against the current hostname and its parent
 domains, same `hostnameSuffixes` logic as the real filter data). The popup's
 **Manage hidden elements** link opens them in their own view

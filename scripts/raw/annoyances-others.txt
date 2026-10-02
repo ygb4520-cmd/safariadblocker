@@ -2361,7 +2361,7 @@ anizone.to##.h-\[90px\].w-\[728px\]:has(iframe[src^="//ad.a-ads.com/"])
 scmp3.org,soundcloudmp3.org##+js(set, detectAdBlock, noopFunc)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/33408
-vaughn.live##+js(trusted-click-element, button#vs_modal_v9_notice_dismiss)
+vaughn.live##+js(trusted-set-local-storage-item, vs_notice_last_shown_8, $now$)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/22203
 civitai.com,civitai.red##a[href="/pricing"] img
@@ -8262,3 +8262,10 @@ investidor10.com.br##+js(trusted-set-local-storage-item, guest_user_banner_aon_c
 
 ! https://github.com/uBlockOrigin/uAssets/issues/34505
 snowcrows.com##+js(rmnt, script, .onerror)
+
+! https://github.com/uBlockOrigin/uAssets/issues/34659
+dokkandb.com##+js(trusted-set-local-storage-item, adBlockPromptDismissedAt, $now$)
+
+! flixnetwork.is/streamsource.ws bot check
+flickzone.org,sflix.gd##+js(trusted-set-cookie, hv3, 871bea4c40b17dc15327ea58214fa62d, 1year)
+
