@@ -355,7 +355,9 @@ page, same idea as uBlock Origin's picker/zapper tool:
    picker exits. **Cancel** (or Escape) restores the element and exits
    without saving anything.
 
-   You can also press **Enter** to hide or **Escape** to cancel. The bar's
+   You can also press **Enter** to hide or **Escape** to cancel (while a pick
+   is in progress these keys go to the picker only -- the page never sees
+   them, so Escape won't also exit a site's fullscreen video). The bar's
    clicks are routed by screen coordinates from listeners registered on
    `window` at `document_start`, ahead of any the page adds -- on mlb.com a
    page-level handler swallowed clicks before they reached the buttons, so

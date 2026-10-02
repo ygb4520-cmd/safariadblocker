@@ -429,15 +429,26 @@
     pickerConfirmBar.style.display = "flex";
   }
 
-  function pickerOnKeyDown(event) {
-    if (!pickerActive) return;
+  // While a pick is in progress, Escape (and Enter, once the confirm bar is
+  // up) belong to the picker alone. Swallow them completely -- keydown,
+  // keypress and keyup, before any page listener -- so the page's own
+  // handlers (e.g. a video player's "Esc exits fullscreen") never see them.
+  // Enter doubles as a keyboard fallback so confirming never depends on the
+  // bar being clickable.
+  // Keys whose keydown the picker consumed: their matching keypress/keyup
+  // are swallowed too, even though the picker has already exited by then.
+  const pickerConsumedKeys = new Set();
+
+  function pickerOnKey(event) {
+    const owned = pickerActive && (event.key === "Escape" || (event.key === "Enter" && pickerAwaitingConfirm));
+    if (!owned && !(event.type !== "keydown" && pickerConsumedKeys.has(event.key))) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (event.type === "keyup") pickerConsumedKeys.delete(event.key);
+    if (event.type !== "keydown" || !owned) return;
+    pickerConsumedKeys.add(event.key);
     if (event.key === "Escape") pickerCancel();
-    // Keyboard fallback so confirming never depends on the bar being clickable.
-    else if (event.key === "Enter" && pickerAwaitingConfirm) {
-      event.preventDefault();
-      event.stopPropagation();
-      pickerConfirm();
-    }
+    else pickerConfirm();
   }
 
   function pickerCleanup() {
@@ -522,7 +533,7 @@
   // pick is in progress.
   if (window.top === window.self) {
     for (const type of PICKER_BAR_EVENTS) window.addEventListener(type, pickerOnBarPointer, true);
-    window.addEventListener("keydown", pickerOnKeyDown, true);
+    for (const type of ["keydown", "keypress", "keyup"]) window.addEventListener(type, pickerOnKey, true);
     window.addEventListener("mousemove", pickerOnMouseMove, true);
     window.addEventListener("click", pickerOnClick, true);
   }
