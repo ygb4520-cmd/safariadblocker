@@ -1,8 +1,8 @@
 [Adblock Plus 2.0]
-! Checksum: jzU55nvhTuT45JbuUltXOA
-! Version: 202610021302
+! Checksum: gTu+5Zht4P4VbCgbXb86wg
+! Version: 202610111302
 ! Title: Adblock Warning Removal List
-! Last modified: 02 Oct 2026 13:02 UTC
+! Last modified: 11 Oct 2026 13:02 UTC
 ! Expires: 1 days (update frequency)
 ! Homepage: https://github.com/easylist/antiadblockfilters
 ! Licence: https://easylist.to/pages/licence.html
@@ -2799,8 +2799,9 @@ comptoir-info.com#@#.textad
 @@||tvanouvelles.ca^$generichide
 !
 ! *** antiadblockfilters:antiadblockfilters/antiadblock_german.txt ***
-##.diysdk_webServices_banners1und1MainContent
 usgang.ch###rectangle-wrapper
+##.diysdk_webServices_banners1und1MainContent
+igorslab.de##.ilab-adblocker-notice
 ||jappy.tv/i/wrbng/abb.png
 ! *** antiadblockfilters:antiadblockfilters/antiadblock_hebrew.txt ***
 ! *** antiadblockfilters:antiadblockfilters/antiadblock_indonesian.txt ***
@@ -2933,7 +2934,7 @@ kinoafisha.ua##.turn-off-add-block-text
 stalkerportaal.ru##.video_adsense
 bookskeeper.ru,e-xecutive.ru##.warning
 forum.bestflowers.ru##.xenOverlay
-/^https?:\/\/pikabu\.ru\/ajax\/{1,2}[^?]+\?[A-Za-z0-9]+=[0-9a-f]{22,}_[a-z0-9_]+/$xmlhttprequest,domain=pikabu.ru
+/^https?:\/\/pikabu\.ru\/ajax\/{1,2}[^?]+\?[A-Za-z0-9]+=_*[0-9a-f]{22,}_[a-z0-9_]+/$xmlhttprequest,domain=pikabu.ru
 /cookie_check.min.js$domain=acetv.me
 /gogl_detector$script,domain=meddaily.ru|newsru.com
 @@||anidub.com/ads.js|$script,domain=anidub.com

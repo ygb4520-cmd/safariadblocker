@@ -2355,7 +2355,7 @@ temperatur.nu##+js(nostif, holidAds)
 flamecomics.xyz##+js(trusted-set-local-storage-item, adBlockedModal:lastDismiss, $now$)
 
 ! anizone.to anti-adb
-anizone.to##.h-\[90px\].w-\[728px\]:has(iframe[src^="//ad.a-ads.com/"])
+anizone.to##div[x-data*=".offsetHeight"]:remove()
 
 ! https://soundcloudmp3.org/ anti-adb
 scmp3.org,soundcloudmp3.org##+js(set, detectAdBlock, noopFunc)
@@ -2377,6 +2377,12 @@ metacritic.com##+js(trusted-set-session-storage-item, BT_AM_SOFTWALL_DISMISSED, 
 
 ! https://github.com/uBlockOrigin/uAssets/pull/34169
 hymnary.org##div#blockbanner
+
+! https://github.com/uBlockOrigin/uAssets/issues/5112#issuecomment-5981295582
+tarnkappe.info###article .entry-content section[data-nosnippet][class$="-only"]
+
+! https://github.com/uBlockOrigin/uAssets/issues/34187
+igorslab.de##.ilab-adblocker-notice
 
 ! ================================================== END: Anti-adblock ==================================================================================
 
@@ -7361,7 +7367,8 @@ movie-web.app##+js(noeval-if, debugger)
 
 ! https://github.com/uBlockOrigin/uAssets/pull/34296
 redecanais.*,redecanaistv.*,redisex.*,xn-----0b4asja7ccgu2b4b0gd0edbjm2jpa1b1e9zva7a0347s4da2797e8qri.xn--1ck2e1b,xn--90afacv0clj6ac0dxa.xn--p1ai,xn--90afacv0cu2a3cr.xn--p1ai##+js(rmnt, script, /ctrlKey|clickNS|disableselect/, quitAfter, 2000)
-redecanais.*,redecanaistv.*,redisex.*,xn-----0b4asja7ccgu2b4b0gd0edbjm2jpa1b1e9zva7a0347s4da2797e8qri.xn--1ck2e1b,xn--90afacv0clj6ac0dxa.xn--p1ai,xn--90afacv0cu2a3cr.xn--p1ai##+js(set, document.fullscreenElement, true)
+! https://github.com/uBlockOrigin/uAssets/issues/34797
+! redecanais.*,redecanaistv.*,redisex.*,xn-----0b4asja7ccgu2b4b0gd0edbjm2jpa1b1e9zva7a0347s4da2797e8qri.xn--1ck2e1b,xn--90afacv0clj6ac0dxa.xn--p1ai,xn--90afacv0cu2a3cr.xn--p1ai##+js(set, document.fullscreenElement, true)
 
 ! https://github.com/uBlockOrigin/uAssets/issues/21554
 lowcygier.pl##+js(aeld, error, browser-plugin)
@@ -8267,5 +8274,7 @@ snowcrows.com##+js(rmnt, script, .onerror)
 dokkandb.com##+js(trusted-set-local-storage-item, adBlockPromptDismissedAt, $now$)
 
 ! flixnetwork.is/streamsource.ws bot check
-flickzone.org,sflix.gd##+js(trusted-set-cookie, hv3, 871bea4c40b17dc15327ea58214fa62d, 1year)
+flickzone.org,sflix.gd##+js(trusted-click-element, button#b, '', 750)
 
+! https://github.com/uBlockOrigin/uAssets/issues/34786
+alensat.com##+js(aeld, contextmenu, preventDefault)

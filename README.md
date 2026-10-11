@@ -297,6 +297,8 @@ There are two layers here now:
 2. **Heuristic fallback** (`cosmetic.css` + `content.js`), for gaps the real
    filter data doesn't cover: `cosmetic.css` hides common generic ad-container
    patterns (`[id^="div-gpt-ad"]`, `ins.adsbygoogle`, known ad iframe hosts,
+   anything with `aria-label="Advertisement"` -- this closes the blank gap a
+   blocked ad tile otherwise leaves, e.g. in mlb.com's Popular carousel,
    etc.); `content.js` also collapses any `<img>`/`<iframe>`/`<embed>`/`<video>`
    that actually fails to load (plus its parent, if that parent exists solely
    to wrap it) and runs a periodic sweep that collapses empty containers sized

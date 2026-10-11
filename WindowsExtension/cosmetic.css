@@ -27,6 +27,7 @@ html.atb-hide-ads [class*="AdContainer" i],
 html.atb-hide-ads [class*="AdWrapperContainer" i],
 html.atb-hide-ads [class~="ad"][class*="StoryPartContainer" i],
 html.atb-hide-ads [class~="p-ad"],
+html.atb-hide-ads [aria-label="Advertisement" i],
 html.atb-hide-ads iframe[src*="doubleclick.net"],
 html.atb-hide-ads iframe[src*="googlesyndication.com"],
 html.atb-hide-ads iframe[src*="amazon-adsystem.com"] {
