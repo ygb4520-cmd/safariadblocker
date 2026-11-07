@@ -38,7 +38,8 @@
   "permissions": [
     "declarativeNetRequest",
     "storage",
-    "tabs"
+    "tabs",
+    "declarativeNetRequestFeedback"
   ],
   "host_permissions": [
     "<all_urls>"

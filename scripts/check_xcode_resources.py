@@ -19,6 +19,7 @@ succeeds but ships a broken extension:
 Run: python3 scripts/check_xcode_resources.py   (exit 1 on any problem)
 """
 import filecmp
+import json
 import os
 import re
 import sys
@@ -28,6 +29,7 @@ SOURCE_DIR = os.path.join(ROOT, "ExtensionSource")
 PROJECT_DIR = os.path.join(ROOT, "Ad Tracker Blocker")
 RESOURCES_DIR = os.path.join(PROJECT_DIR, "Ad Tracker Blocker Extension", "Resources")
 WINDOWS_DIR = os.path.join(ROOT, "WindowsExtension")
+WINDOWS_ONLY_PERMISSION = "declarativeNetRequestFeedback"
 PBXPROJ = os.path.join(PROJECT_DIR, "Ad Tracker Blocker.xcodeproj", "project.pbxproj")
 
 
@@ -66,6 +68,21 @@ def find_problems():
             continue
         if not os.path.exists(dst):
             problems.append(f"{name}: in ExtensionSource/ but not mirrored to WindowsExtension/")
+        elif name == "manifest.json":
+            # The Windows copy deliberately adds declarativeNetRequestFeedback
+            # (exact "which rule blocked this" data for the diagnoser, Chrome/
+            # Edge unpacked only); Safari's manifest is left untouched. Any
+            # OTHER difference is still drift.
+            with open(src, encoding="utf-8") as f:
+                safari_manifest = json.load(f)
+            with open(dst, encoding="utf-8") as f:
+                windows_manifest = json.load(f)
+            windows_manifest["permissions"] = [
+                p for p in windows_manifest.get("permissions", []) if p != WINDOWS_ONLY_PERMISSION
+            ]
+            if safari_manifest != windows_manifest:
+                problems.append("manifest.json: ExtensionSource/ and WindowsExtension/ differ beyond "
+                                f"the Windows-only {WINDOWS_ONLY_PERMISSION} permission")
         elif not filecmp.cmp(src, dst, shallow=False):
             problems.append(f"{name}: ExtensionSource/ and WindowsExtension/ copies differ")
     conv_src = os.path.join(ROOT, "scripts", "convert_filterlists.py")

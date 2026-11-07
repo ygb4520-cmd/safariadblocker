@@ -316,3 +316,165 @@ button:active {
   margin: 0 0 6px;
   text-decoration: none;
 }
+
+/* --- "This site is broken?" page (diagnose.html) ----------------------- */
+body.diag-body {
+  width: 360px;
+}
+
+.diag-status {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.diag-status button {
+  width: auto;
+  display: inline-block;
+  margin: 6px 6px 0 0;
+  padding: 4px 10px;
+}
+
+.diag-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 8px 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.diag-card h2 {
+  font-size: 13px;
+  margin: 0 0 4px;
+}
+
+.diag-card p {
+  margin: 4px 0;
+}
+
+.diag-card ul {
+  margin: 4px 0 4px 16px;
+  padding: 0;
+}
+
+.diag-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.diag-actions button {
+  flex: 1 1 auto;
+  width: auto;
+  margin: 0;
+  padding: 6px 8px;
+}
+
+.diag-actions .secondary-btn {
+  flex: 1 1 auto;
+}
+
+details.diag-section {
+  border-top: 1px solid var(--border);
+  padding: 8px 0 2px;
+}
+
+details.diag-section > summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.diag-list {
+  list-style: none;
+  margin: 6px 0;
+  padding: 0;
+}
+
+.diag-list li {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.diag-list li > input[type="checkbox"] {
+  flex: none;
+  margin-top: 2px;
+}
+
+.diag-list .diag-main {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.diag-list .diag-sub {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.diag-list button {
+  flex: none;
+  width: auto;
+  margin: 0;
+  padding: 2px 8px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--border);
+}
+
+.diag-tag {
+  display: inline-block;
+  padding: 0 6px;
+  margin-left: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.diag-tag.warn {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+#diagReport {
+  max-height: 160px;
+  overflow: auto;
+  font-size: 10px;
+  white-space: pre-wrap;
+  background: var(--border);
+  border-radius: 6px;
+  padding: 6px;
+  margin: 6px 0 0;
+}
+
+/* Ordinary square checkboxes in the diagnoser's lists (the global rule
+   above restyles every checkbox as a toggle switch). */
+.diag-list input[type="checkbox"] {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  background: initial;
+  position: static;
+}
+
+.diag-list input[type="checkbox"]::before {
+  content: none;
+}
+
+details.diag-section ul:not(.diag-list) {
+  margin: 4px 0 4px 16px;
+  padding: 0;
+  font-size: 12px;
+}

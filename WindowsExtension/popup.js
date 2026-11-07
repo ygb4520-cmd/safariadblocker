@@ -23,6 +23,10 @@ const importStatus = document.getElementById("importStatus");
 const pickElementBtn = document.getElementById("pick-element");
 const openElementsBtn = document.getElementById("open-elements");
 const openStatsBtn = document.getElementById("open-stats");
+const openDiagnoseBtn = document.getElementById("open-diagnose");
+const diagBanner = document.getElementById("diagBanner");
+const diagBannerOpen = document.getElementById("diag-banner-open");
+const diagBannerStop = document.getElementById("diag-banner-stop");
 
 let activeHostname = null;
 let customRuleCap = Infinity;
@@ -103,7 +107,8 @@ async function loadRulesHealth() {
 }
 
 async function init() {
-  const { state, activeHostname: hostname, customRuleCap: cap } = await send({ type: "GET_STATE" });
+  const { state, activeHostname: hostname, customRuleCap: cap, diagnosticActive } = await send({ type: "GET_STATE" });
+  diagBanner.hidden = !diagnosticActive;
   activeHostname = hostname;
   currentState = state;
   if (cap) customRuleCap = cap;
@@ -244,6 +249,21 @@ openElementsBtn.addEventListener("click", () => {
 
 openStatsBtn.addEventListener("click", () => {
   location.href = "stats.html";
+});
+
+openDiagnoseBtn.addEventListener("click", () => {
+  location.href = "diagnose.html";
+});
+
+// A guided test from the "This site is broken?" page is still running --
+// make it impossible to forget (features are temporarily off until it ends).
+diagBannerOpen.addEventListener("click", () => {
+  location.href = "diagnose.html";
+});
+
+diagBannerStop.addEventListener("click", async () => {
+  await send({ type: "DIAG_END_SESSION", reload: true });
+  diagBanner.hidden = true;
 });
 
 init();

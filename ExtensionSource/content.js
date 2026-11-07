@@ -35,17 +35,46 @@
 (function () {
   const api = window.browser || window.chrome;
 
+  // --- Per-site exceptions + the guided test's overlay ---------------------
+  // Both come from the "This site is broken?" diagnoser (see background.js):
+  // siteExceptions are lasting fixes, diagnosticSession is a temporary,
+  // expiring "feature switched off for the test" marker.
+  const DIAG_EXPIRY_MS = 15 * 60 * 1000;
+
+  function hostCovered(hostname) {
+    return location.hostname === hostname || location.hostname.endsWith("." + hostname);
+  }
+
+  function hasException(state, kind) {
+    return (state.siteExceptions || []).some((e) => e.kind === kind && hostCovered(e.hostname));
+  }
+
+  function testSwitchedOff(state, feature) {
+    const d = state.diagnosticSession;
+    return !!d && Date.now() - d.startedAt <= DIAG_EXPIRY_MS && (d.disabled || []).includes(feature);
+  }
+
   function shouldHide(state) {
     const categories = state.rulesetsEnabled || {};
     const paused = (state.pausedDomains || []).includes(location.hostname);
-    return (categories.ads || categories.trackers) && !paused;
+    return (
+      (categories.ads || categories.trackers) &&
+      !paused &&
+      !hasException(state, "cleanup") &&
+      !testSwitchedOff(state, "cleanup")
+    );
   }
 
   // Independent of the Ads/Trackers toggles -- its own switch in the popup
   // -- but still respects per-site pause like everything else here.
   function shouldBlockPopups(state) {
     const paused = (state.pausedDomains || []).includes(location.hostname);
-    return state.popupRedirectProtection !== false && !paused;
+    return (
+      state.popupRedirectProtection !== false &&
+      !paused &&
+      !hasException(state, "popups") &&
+      !testSwitchedOff(state, "popups")
+    );
   }
 
   function applyState(state) {
@@ -61,7 +90,7 @@
   let hidingEnabled = false;
   let popupProtectionEnabled = false;
 
-  const STATE_KEYS = ["rulesetsEnabled", "pausedDomains", "popupRedirectProtection"];
+  const STATE_KEYS = ["rulesetsEnabled", "pausedDomains", "popupRedirectProtection", "siteExceptions", "diagnosticSession"];
 
   api.storage.local.get(STATE_KEYS).then(applyState);
 
@@ -84,6 +113,10 @@
       const enabled = document.documentElement.classList.contains("atb-block-popups");
       const activation = navigator.userActivation;
       if (enabled && activation && !activation.isActive) {
+        try {
+          const root = document.documentElement;
+          root.setAttribute("data-atb-popups", String((parseInt(root.getAttribute("data-atb-popups") || "0", 10) || 0) + 1));
+        } catch (e) {}
         return null;
       }
       return nativeOpen.apply(window, args);
@@ -106,19 +139,60 @@
 
   const COLLAPSIBLE = new Set(["IMG", "IFRAME", "EMBED", "OBJECT", "VIDEO"]);
 
+  // --- Diagnostic log (read by the popup's "This site is broken?" page) ------
+  // A short, in-memory-only record of what failed to load and what this
+  // script hid, so the diagnoser can explain a broken page AFTER the damage
+  // is done. Never stored or sent anywhere; capped so a noisy page can't
+  // grow it without bound.
+  const DIAG_LOG_CAP = 120;
+  const failedLog = []; // {kind, url}
+  const hiddenLog = []; // {reason, tag, desc, url}
+
+  function describeElement(el) {
+    const id = el.id ? `#${String(el.id).slice(0, 40)}` : "";
+    const cls =
+      typeof el.className === "string" && el.className.trim()
+        ? "." + el.className.trim().split(/\s+/).slice(0, 2).map((c) => c.slice(0, 30)).join(".")
+        : "";
+    return `${el.tagName.toLowerCase()}${id}${cls}`;
+  }
+
+  function logHidden(reason, el, extra) {
+    if (hiddenLog.length >= DIAG_LOG_CAP) return;
+    hiddenLog.push({ reason, tag: el.tagName.toLowerCase(), desc: describeElement(el), ...(extra || {}) });
+  }
+
+  const LOAD_KINDS = {
+    IMG: "img", IFRAME: "iframe", VIDEO: "media", AUDIO: "media", SOURCE: "media",
+    SCRIPT: "script", EMBED: "other", OBJECT: "other",
+  };
+
+  function logFailedLoad(el) {
+    let kind = LOAD_KINDS[el.tagName];
+    if (el.tagName === "LINK") kind = /stylesheet/i.test(el.rel || "") ? "css" : "other";
+    if (!kind || failedLog.length >= DIAG_LOG_CAP) return;
+    const url = el.currentSrc || el.src || el.href || "";
+    if (!/^https?:/i.test(url)) return;
+    if (failedLog.some((f) => f.url === url && f.kind === kind)) return;
+    failedLog.push({ kind, url: url.slice(0, 500) });
+  }
+
   // Media load-error events don't bubble, so listen on the capture phase.
   document.addEventListener(
     "error",
     (event) => {
-      if (!hidingEnabled) return;
       const el = event.target;
-      if (!el || !COLLAPSIBLE.has(el.tagName)) return;
+      if (!el || !el.tagName) return;
+      logFailedLoad(el);
+      if (!hidingEnabled || !COLLAPSIBLE.has(el.tagName)) return;
 
       el.style.setProperty("display", "none", "important");
+      logHidden("failed-load", el, { url: (el.currentSrc || el.src || "").slice(0, 300) });
 
       const parent = el.parentElement;
       if (parent && parent.childElementCount === 1) {
         parent.style.setProperty("display", "none", "important");
+        logHidden("failed-load-wrapper", parent);
       }
     },
     true
@@ -169,7 +243,9 @@
       if (el.children.length > 0) continue; // only leaf label nodes
       const text = (el.textContent || "").trim();
       if (text.length > 60 || !AD_LABEL_PATTERN.test(text)) continue;
-      findAdSlotAncestor(el).style.setProperty("display", "none", "important");
+      const slot = findAdSlotAncestor(el);
+      slot.style.setProperty("display", "none", "important");
+      logHidden("ad-label", slot, { label: text.slice(0, 40) });
     }
   }
 
@@ -186,6 +262,7 @@
       if (w < 20 || h < 20 || !matchesAdSize(w, h)) continue;
       if (!isEmptyContainer(el)) continue;
       el.style.setProperty("display", "none", "important");
+      logHidden("ad-size", el, { size: `${w}x${h}` });
     }
   }
 
@@ -221,19 +298,32 @@
     return suffixes;
   }
 
+  let cosmeticData = null;
+  let cosmeticStyleEl = null;
+  let cosmeticOverrideEl = null;
+  let siteExceptionList = [];
+
+  // Selectors the user un-hid via the diagnoser ("Show it") for this site.
+  function cosmeticExceptions() {
+    return siteExceptionList.filter((e) => e.kind === "cosmetic" && hostCovered(e.hostname));
+  }
+
   function buildCosmeticCss(data) {
     const suffixes = hostnameSuffixes(location.hostname);
     const excluded = new Set();
     for (const suffix of suffixes) {
       for (const sel of (data.exceptions && data.exceptions[suffix]) || []) excluded.add(sel);
     }
+    for (const e of cosmeticExceptions()) excluded.add(e.selector);
 
     const selectors = new Set();
     for (const sel of data.generic || []) {
       if (!excluded.has(sel)) selectors.add(sel);
     }
     for (const suffix of suffixes) {
-      for (const sel of (data.domains && data.domains[suffix]) || []) selectors.add(sel);
+      for (const sel of (data.domains && data.domains[suffix]) || []) {
+        if (!excluded.has(sel)) selectors.add(sel);
+      }
     }
 
     // Chunked rather than one giant selector list: if any single selector
@@ -252,18 +342,57 @@
     return css;
   }
 
+  // (Re)builds the two <style> blocks. Called on load and whenever the
+  // site-exception list changes, so a "Show it" takes effect immediately.
+  function renderCosmetic() {
+    if (cosmeticStyleEl) cosmeticStyleEl.remove();
+    if (cosmeticOverrideEl) cosmeticOverrideEl.remove();
+    cosmeticStyleEl = cosmeticOverrideEl = null;
+    if (!cosmeticData) return;
+    const parent = document.head || document.documentElement;
+
+    const css = buildCosmeticCss(cosmeticData);
+    if (css) {
+      cosmeticStyleEl = document.createElement("style");
+      cosmeticStyleEl.textContent = css;
+      parent.appendChild(cosmeticStyleEl);
+    }
+
+    // A selector from cosmetic.css can't be filtered out (that file is
+    // injected statically by the manifest), so it's beaten instead: same
+    // specificity, later in the document, so it wins. `revert` falls back to
+    // the browser default display, which is right for the usual block-level
+    // boxes these rules hide.
+    const overrides = cosmeticExceptions()
+      .filter((e) => e.source === "css")
+      .map((e) => `html.atb-hide-ads ${e.selector}{display:revert!important}`)
+      .join("");
+    if (overrides) {
+      cosmeticOverrideEl = document.createElement("style");
+      cosmeticOverrideEl.textContent = overrides;
+      parent.appendChild(cosmeticOverrideEl);
+    }
+  }
+
   function loadCosmeticRules() {
-    fetch(api.runtime.getURL("rules/cosmetic.json"))
-      .then((r) => r.json())
-      .then((data) => {
-        const css = buildCosmeticCss(data);
-        if (!css) return;
-        const style = document.createElement("style");
-        style.textContent = css;
-        (document.head || document.documentElement).appendChild(style);
+    Promise.all([
+      fetch(api.runtime.getURL("rules/cosmetic.json")).then((r) => r.json()),
+      api.storage.local.get(["siteExceptions"]),
+    ])
+      .then(([data, stored]) => {
+        cosmeticData = data;
+        siteExceptionList = stored.siteExceptions || [];
+        renderCosmetic();
       })
       .catch(() => {}); // best-effort; a missing/broken file shouldn't break the page
   }
+
+  api.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && changes.siteExceptions) {
+      siteExceptionList = changes.siteExceptions.newValue || [];
+      renderCosmetic();
+    }
+  });
 
   // --- Custom cosmetic rules (user-picked via the popup's element picker) --
   // A short, per-user list, not filter-list-scale data -- one small <style>
@@ -541,9 +670,165 @@
     window.addEventListener("click", pickerOnClick, true);
   }
 
-  api.runtime.onMessage.addListener((message) => {
-    if (message?.type === "START_ELEMENT_PICKER" && window.top === window.self) {
+  // --- Diagnostics (answers the popup's "This site is broken?" page) --------
+  // Page-side network failures that only the page's own JS world can see
+  // (fetch/XHR rejections) are recorded by this injected script and handed
+  // back over a pair of DOM events. Strings only cross the world boundary
+  // reliably, hence the JSON. If the site's CSP refuses inline scripts the
+  // listener never answers and the report just says so.
+  const MAIN_WORLD_DIAG = `(function () {
+    const failed = [];
+    const seen = {};
+    function rec(kind, url) {
+      try {
+        url = new URL(String(url), location.href).href.slice(0, 500);
+        const key = kind + " " + url;
+        if (seen[key] || failed.length >= 150) return;
+        seen[key] = 1;
+        failed.push({ kind: kind, url: url });
+      } catch (e) {}
+    }
+    const nativeFetch = window.fetch;
+    if (typeof nativeFetch === "function") {
+      window.fetch = function (input) {
+        const p = nativeFetch.apply(this, arguments);
+        let url = "";
+        try { url = (input && input.url) || String(input); } catch (e) {}
+        return p.then(function (r) { return r; }, function (err) {
+          if (!err || err.name !== "AbortError") rec("fetch", url);
+          throw err;
+        });
+      };
+    }
+    const nativeOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      try {
+        const u = String(url);
+        this.addEventListener("error", function () { rec("xhr", u); });
+      } catch (e) {}
+      return nativeOpen.apply(this, arguments);
+    };
+    document.addEventListener("__atb_diag_req", function () {
+      document.dispatchEvent(new CustomEvent("__atb_diag_res", { detail: JSON.stringify(failed) }));
+    });
+  })();`;
+
+  function injectMainWorldDiag() {
+    const script = document.createElement("script");
+    script.textContent = MAIN_WORLD_DIAG;
+    (document.head || document.documentElement).appendChild(script);
+    script.remove();
+  }
+
+  if (window.top === window.self) injectMainWorldDiag();
+
+  async function cosmeticCssSelectors() {
+    try {
+      const text = await fetch(api.runtime.getURL("cosmetic.css")).then((r) => r.text());
+      const out = [];
+      for (const block of text.replace(/\/\*[\s\S]*?\*\//g, "").split("}")) {
+        for (const part of block.split("{")[0].split(",")) {
+          const sel = part.trim().replace(/^html\.atb-hide-ads\s+/, "");
+          if (sel) out.push(sel);
+        }
+      }
+      return out;
+    } catch {
+      return [];
+    }
+  }
+
+  function summarizeMatches(selector, source, nodes) {
+    const first = Array.from(nodes).slice(0, 3);
+    return {
+      selector,
+      source,
+      count: nodes.length,
+      samples: first.map((el) => ({
+        desc: describeElement(el),
+        textLen: Math.min((el.textContent || "").trim().length, 9999),
+        hasMedia: !!el.querySelector("video,audio,canvas,input,button,iframe,img"),
+      })),
+      hiddenNow: getComputedStyle(first[0]).display === "none",
+    };
+  }
+
+  function collectMatches(list, source, skip, out) {
+    for (let i = 0; i < list.length && out.length < 40; i += COSMETIC_CHUNK_SIZE) {
+      const chunk = list.slice(i, i + COSMETIC_CHUNK_SIZE);
+      let any = true;
+      try {
+        any = !!document.querySelector(chunk.join(","));
+      } catch {
+        // an invalid selector somewhere in the chunk: test them one by one
+      }
+      if (!any) continue;
+      for (const sel of chunk) {
+        if (skip.has(sel)) continue;
+        let nodes;
+        try {
+          nodes = document.querySelectorAll(sel);
+        } catch {
+          continue;
+        }
+        if (nodes.length === 0) continue;
+        out.push(summarizeMatches(sel, source, nodes));
+        if (out.length >= 40) return;
+      }
+    }
+  }
+
+  // Which element-hiding selectors currently match something on this page.
+  async function collectCosmeticMatches() {
+    const out = [];
+    if (!cosmeticData) return out;
+    const suffixes = hostnameSuffixes(location.hostname);
+    const skip = new Set(cosmeticExceptions().map((e) => e.selector));
+    const domainSelectors = [];
+    for (const suffix of suffixes) {
+      for (const sel of (cosmeticData.domains && cosmeticData.domains[suffix]) || []) domainSelectors.push(sel);
+    }
+    collectMatches(domainSelectors, "json", skip, out); // site-specific first: most relevant
+    collectMatches(cosmeticData.generic || [], "json", skip, out);
+    collectMatches(await cosmeticCssSelectors(), "css", skip, out);
+    return out;
+  }
+
+  async function collectDiagLog() {
+    let failedCalls = null;
+    try {
+      let detail = null;
+      const onResponse = (e) => {
+        detail = e.detail;
+      };
+      document.addEventListener("__atb_diag_res", onResponse);
+      document.dispatchEvent(new CustomEvent("__atb_diag_req")); // answered synchronously, if at all
+      document.removeEventListener("__atb_diag_res", onResponse);
+      if (typeof detail === "string") failedCalls = JSON.parse(detail);
+    } catch {
+      failedCalls = null;
+    }
+    return {
+      hostname: location.hostname,
+      failedElements: failedLog.slice(),
+      failedCalls, // null = this page's fetch/XHR couldn't be watched
+      hidden: hiddenLog.slice(),
+      popupsBlocked: parseInt(document.documentElement.getAttribute("data-atb-popups") || "0", 10) || 0,
+      cosmetic: await collectCosmeticMatches(),
+      cleanupOn: hidingEnabled,
+      popupsOn: popupProtectionEnabled,
+    };
+  }
+
+  api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (window.top !== window.self) return;
+    if (message?.type === "START_ELEMENT_PICKER") {
       startElementPicker();
+    } else if (message?.type === "GET_DIAG_LOG") {
+      collectDiagLog()
+        .then(sendResponse)
+        .catch(() => sendResponse(null));
+      return true; // async response
     }
   });
 })();

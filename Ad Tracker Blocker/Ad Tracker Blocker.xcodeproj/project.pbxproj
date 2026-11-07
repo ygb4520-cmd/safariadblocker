@@ -31,6 +31,9 @@
 		CFFEC6DDC2010A7356527C20 /* stats.js in Resources */ = {isa = PBXBuildFile; fileRef = 5EFA5189F48522C02E1A7B38 /* stats.js */; };
 		7E06BBF34637E47563D729B4 /* elements.html in Resources */ = {isa = PBXBuildFile; fileRef = 7AE0CB20D842129AFF9C6060 /* elements.html */; };
 		1940C71C1B7C2F0913E9663B /* elements.js in Resources */ = {isa = PBXBuildFile; fileRef = CC31F75341DA3F8B1A6B549C /* elements.js */; };
+		29525AADD0DA7E9EE9A2C98B /* diagnose-core.js in Resources */ = {isa = PBXBuildFile; fileRef = 41C2A3E7F6C57D5034B91274 /* diagnose-core.js */; };
+		B1FEC663379A25062E6550B8 /* diagnose.js in Resources */ = {isa = PBXBuildFile; fileRef = 63AFF28E43E7535FF988B357 /* diagnose.js */; };
+		7C82BB593DCF17BCFA90A62E /* diagnose.html in Resources */ = {isa = PBXBuildFile; fileRef = B6C946382F0DF68B8AB3349F /* diagnose.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +88,9 @@
 		5EFA5189F48522C02E1A7B38 /* stats.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "stats.js"; path = "Resources/stats.js"; sourceTree = "<group>"; };
 		7AE0CB20D842129AFF9C6060 /* elements.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "elements.html"; path = "Resources/elements.html"; sourceTree = "<group>"; };
 		CC31F75341DA3F8B1A6B549C /* elements.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "elements.js"; path = "Resources/elements.js"; sourceTree = "<group>"; };
+		41C2A3E7F6C57D5034B91274 /* diagnose-core.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "diagnose-core.js"; path = "Resources/diagnose-core.js"; sourceTree = "<group>"; };
+		63AFF28E43E7535FF988B357 /* diagnose.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = "diagnose.js"; path = "Resources/diagnose.js"; sourceTree = "<group>"; };
+		B6C946382F0DF68B8AB3349F /* diagnose.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = "diagnose.html"; path = "Resources/diagnose.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +180,9 @@
 				5EFA5189F48522C02E1A7B38 /* stats.js */,
 				7AE0CB20D842129AFF9C6060 /* elements.html */,
 				CC31F75341DA3F8B1A6B549C /* elements.js */,
+				41C2A3E7F6C57D5034B91274 /* diagnose-core.js */,
+				63AFF28E43E7535FF988B357 /* diagnose.js */,
+				B6C946382F0DF68B8AB3349F /* diagnose.html */,
 			);
 			name = Resources;
 			path = "Ad Tracker Blocker Extension";
@@ -292,6 +301,9 @@
 				CFFEC6DDC2010A7356527C20 /* stats.js in Resources */,
 				7E06BBF34637E47563D729B4 /* elements.html in Resources */,
 				1940C71C1B7C2F0913E9663B /* elements.js in Resources */,
+				29525AADD0DA7E9EE9A2C98B /* diagnose-core.js in Resources */,
+				B1FEC663379A25062E6550B8 /* diagnose.js in Resources */,
+				7C82BB593DCF17BCFA90A62E /* diagnose.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

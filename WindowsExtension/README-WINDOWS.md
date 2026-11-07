@@ -64,6 +64,16 @@ Same idea as the Mac version:
   **Pause on this site** turned on — which should also switch the toolbar
   icon itself to a grayed-out version while that tab is active.
 
+## "This site is broken?" — exact blocking details (Windows only)
+
+The popup's **This site is broken?** page (see the main README) works the same
+here, with one upgrade: this folder's `manifest.json` also requests the
+`declarativeNetRequestFeedback` permission. For an *unpacked* extension like
+this one, that lets the page show **exactly** which rule blocked each request
+and how many requests Referrer Privacy changed, instead of "likely". (After
+updating this folder, click **Reload** on the extension in
+`edge://extensions` / `chrome://extensions` once so the new permission loads.)
+
 ## Automatic rule updates (optional, one-time setup)
 
 Like the Mac version's daily refresh, this folder can update its own rules.

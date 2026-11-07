@@ -55,6 +55,7 @@ safariadblocker/
 │   ├── popup.html / popup.css / popup.js
 │   ├── elements.html / elements.js  # the hidden-elements manager view
 │   ├── stats.html / stats.js      # the "How we're doing" view opened from the popup
+│   ├── diagnose.html / diagnose.js / diagnose-core.js  # the "This site is broken?" diagnoser (core = pure, unit-tested logic)
 │   ├── icons/                    # toolbar icons
 │   └── rules/
 │       ├── ads.json               # EasyList + Peter Lowe's list
@@ -74,6 +75,7 @@ safariadblocker/
 └── scripts/
     ├── convert_filterlists.py       # regenerates rules/*.json from all upstream sources
     ├── test_convert_filterlists.py  # automated tests for the parser functions above
+    ├── test_diagnose_core.js        # Node tests for the diagnoser's rule matcher / ranking / guided test
     ├── check_xcode_resources.py     # fails if a Resources/ file isn't wired into the Xcode project
     └── generate_icons.py            # regenerates the toolbar icon PNGs
 ```
@@ -386,6 +388,75 @@ matching by your next visit. The heuristic is necessarily imperfect (there's
 no way to know for certain from the string alone), but it catches the
 common patterns; if a picked rule ever stops matching, just pick it again.
 
+### "This site is broken?" (self-diagnoser, per-site fixes, undo)
+
+When a site stalls or looks wrong, the popup's **This site is broken?** link
+opens a page that explains what the extension did on that page and fixes it
+for that one site. Everything it changes is a *site exception* that can be
+undone.
+
+**What it shows**
+- **Requests that were blocked**: every request that failed to load, traced
+  back to the list and rule that (probably) blocked it, grouped by the host
+  the page was talking to, and ranked by how much the site looks like it
+  *needed* it (same company as the site, a real data/media/script call, not
+  telemetry-looking → "possibly needed"). Safari can't report which rule
+  blocked a request, so `diagnose-core.js` re-implements declarativeNetRequest
+  matching (`||`/`^`/`*` filters, resource types, third-party, initiator
+  domains, priorities, allow-beats-block) and labels results **(likely)**.
+  The page-side log comes from `content.js`: failed `<img>`/`<script>`/
+  `<link>`/media/frame loads (capture-phase `error` events) plus failed
+  `fetch`/`XHR` calls, recorded by a small script injected into the page's own
+  JS world and read back over DOM events. It is a capped, in-memory list,
+  never stored or sent anywhere. (A site whose CSP forbids inline scripts
+  leaves the fetch/XHR part out; the page says so.)
+- **Things we hid**: element-hiding selectors that currently match something
+  (marked "has real content" if the element holds text or media) and what the
+  automatic page cleanup collapsed.
+- **Referrer and pop-ups**: how many pop-ups were blocked, and whether
+  Referrer Privacy is stripping the header.
+- **Chrome/Edge (Windows copy only):** the Windows manifest also requests
+  `declarativeNetRequestFeedback`, which makes `onRuleMatchedDebug` available
+  to an *unpacked* extension. `background.js` then keeps a per-tab log of
+  exactly which rule matched each request, so attribution says **(exact)** and
+  the Referrer line shows the real number of requests whose header was removed.
+  Safari's manifest is deliberately left alone; `check_xcode_resources.py`
+  allows exactly that one difference.
+
+**Fixes (all per-site, all undoable)** are stored in `siteExceptions` (and
+included in Export/Import settings):
+- *Allow this request host on this site* → a priority-200 dynamic **allow**
+  rule (`requestDomains` + `initiatorDomains`, IDs 10000-14999) that beats
+  every list rule and the pause rule.
+- *Keep the referrer on this site* → that site is added to the Referrer
+  Privacy rule's `excludedInitiatorDomains`.
+- *Allow pop-ups* / *Turn page cleanup off* on this site, and *Show it* for
+  one hidden element (removed from the generated hiding CSS, or beaten by a
+  later `display: revert` rule when it comes from `cosmetic.css`).
+
+Every fix shows an **Undo** right away; the page also has **Undo last fix**
+(removes the newest batch), per-fix **Remove**, and **Remove all fixes for this
+site**.
+
+**Guided test.** For problems nothing visibly fails (Referrer Privacy, page
+cleanup, pop-up blocking...), **Run the guided test** switches features off in
+groups, reloads the page and asks "is it working now?". It first turns
+*everything* off (if that doesn't help, it isn't us), then halves the suspects
+until one is left, then double-checks it (`nextStep` in `diagnose-core.js`;
+about 3-6 questions). Then it offers the matching fix. The test uses an
+**overlay**: `background.js` applies the switched-off features on top of the
+saved settings (`overlayState`), so the user's real settings are never
+modified. The test restores itself on Stop, when it finishes, after 15 minutes
+of inactivity (checked on tab updates and messages), and at browser startup.
+While one is running, the main popup shows a banner with **Stop & restore**.
+
+**Share a report.** *Copy report* (or *Open a GitHub issue*, which only opens a
+pre-filled tab) builds a plain-text report with query strings stripped from
+all web addresses. Nothing is ever sent automatically.
+
+Tests: `node scripts/test_diagnose_core.js` (the matcher is checked against
+the real bundled rule files).
+
 ### Adopting uBlock's lists without uBlock's scriptlet engine
 
 This extension still only does plain CSS selector hiding — it does not run
@@ -566,6 +637,13 @@ Includes a regression test for a real bug caught and fixed earlier in this
 project's history (a `#@#` exception silently failing to counter a *generic*
 selector, the common real-world case) and for the wildcard-domain and
 procedural-selector fixes made while adding uBlock's annoyances lists.
+
+The diagnoser's matching, ranking and guided-test logic has Node tests that
+run against the real rule files (no dependencies):
+
+```bash
+node scripts/test_diagnose_core.js
+```
 
 A separate check guards the Xcode project itself. Top-level files in the
 extension's `Resources/` folder (unlike the `icons/` and `rules/` folder
