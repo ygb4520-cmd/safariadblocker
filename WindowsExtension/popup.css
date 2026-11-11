@@ -261,6 +261,7 @@ button:active {
 }
 
 .link-btn {
+  display: block; /* one link per line */
   width: auto;
   margin: 6px 0 0;
   padding: 0;
