@@ -21,6 +21,20 @@ both versions run from source:
   **[`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md)**
   for how to load it directly into your browser.
 
+## Getting the files
+
+You don't need the command line. Either:
+
+- **In a browser (easiest):** open
+  <https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip>
+  and the zip downloads straight to your Downloads folder. Or, on the repo
+  page, click the green **Code** button, then **Download ZIP**.
+- **From a terminal (optional):** on Windows PowerShell,
+  `curl.exe --ssl-no-revoke -L -o "$env:USERPROFILE\Downloads\safariadblocker.zip" "https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip"`.
+  On a Mac, `curl -L -o ~/Downloads/safariadblocker.zip https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip`.
+
+Then unzip it somewhere permanent (not `Downloads`) and follow the steps below.
+
 ## Quick start
 
 1. Open `Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj` in Xcode, sign both
