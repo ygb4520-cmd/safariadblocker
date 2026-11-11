@@ -1,3 +1,9 @@
+<p align="center">
+  <a href="https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip">
+    <img alt="Download" src="https://img.shields.io/badge/%E2%AC%87%20%20DOWNLOAD%20(ZIP)-2ea44f?style=for-the-badge&logoColor=white" height="60">
+  </a>
+</p>
+
 # Ad & Tracker Blocker (Safari Web Extension)
 
 A personal-use Safari Web Extension for macOS that blocks ads, trackers, and
