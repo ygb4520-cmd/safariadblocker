@@ -19,11 +19,11 @@ jobs:
         run: |
           TAG="${GITHUB_REF_NAME#v}"
           VER=$(python3 -c "import
-json;print(json.load(open('WindowsExtension/manifest.json'))['version'])")
+          json;print(json.load(open('WindowsExtension/manifest.json'))['version'])")
           echo "tag=$TAG manifest=$VER"
           if [ "$TAG" != "$VER" ]; then
             echo "::warning::Tag $GITHUB_REF_NAME does not match
-manifest version $VER"
+          manifest version $VER"
           fi
 
       - name: Build Windows extension zip
@@ -34,7 +34,7 @@ manifest version $VER"
        - name: Build Mac (Xcode project) source zip
         run: |
           zip -r AdTrackerBlocker-Mac-Source.zip "Ad Tracker Blocker"
-scripts README.md -x '*.DS_Store' '*/xcuserdata/*' '*.xcuserstate'
+          scripts README.md -x '*.DS_Store' '*/xcuserdata/*' '*.xcuserstate'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
