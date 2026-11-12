@@ -31,7 +31,7 @@ manifest version $VER"
           cd WindowsExtension
           zip -r ../AdTrackerBlocker-Windows.zip . -x '.DS_Store'
 
-      - name: Build Mac (Xcode project) source zip
+       - name: Build Mac (Xcode project) source zip
         run: |
           zip -r AdTrackerBlocker-Mac-Source.zip "Ad Tracker Blocker"
 scripts README.md -x '*.DS_Store' '*/xcuserdata/*' '*.xcuserstate'
