@@ -254,7 +254,7 @@ Safari's Extensions settings is on.
   newsletter/social overlays, etc.) is sourced from
   [uBlock Origin's own annoyances lists](https://github.com/uBlockOrigin/uAssets/tree/master/filters) —
   see **Adopting uBlock's lists without uBlock's scriptlet engine** below for
-  why only some of uBlock's own list content could be used safely.
+   why only some of uBlock's own list content could be used safely.
   Anti-Adblock is sourced from EasyList's own
   [Adblock Warning Removal List](https://github.com/easylist/antiadblockfilters) —
   it hides the *dismissible* "please disable your ad blocker" nags some
