@@ -28,12 +28,39 @@ use the table below (always the latest release):
 | System | Download | What it is |
 | --- | --- | --- |
 | Windows (Edge/Chrome) | [AdTrackerBlocker-Windows.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Windows.zip) | The extension, ready to load. No build step — see [`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md). |
-| Mac (Safari) | [AdTrackerBlocker-Mac-Source.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Mac-Source.zip) | Xcode project + scripts + README. Build it yourself via Xcode (free, ~5 minutes, no paid account). See **Quick start** below. |
+| Mac (Safari) | [AdTrackerBlocker-Mac-Source.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Mac-Source.zip) | Xcode project + scripts + README. Build it yourself via Xcode (free, ~5 minutes, no paid account). See **Quick start (Mac / Safari)** below. |
 | I want everything | [Whole repo (ZIP)](https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip) | The full source of both versions. |
 
-Unzip it somewhere permanent (not `Downloads`) and follow the steps below.
+Unzip it somewhere permanent (not `Downloads`) and follow the Quick start for your system below.
 
-## Quick start
+## Quick start (Windows — Edge or Chrome)
+
+No Xcode, no signing, no build step. The Windows version is the same
+extension, loaded straight into the browser.
+
+1. Download [AdTrackerBlocker-Windows.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Windows.zip)
+   (or use the **DOWNLOAD FOR WINDOWS** button at the top).
+2. Right-click the zip > **Extract All...** and extract it somewhere permanent,
+   e.g. `Documents\AdTrackerBlocker`. Not `Downloads` or a temp folder: the
+   browser loads the extension from that folder, so if it is moved or deleted
+   the extension stops working. The folder you load must be the one that
+   contains `manifest.json`.
+3. Open the extensions page:
+   - **Edge:** go to `edge://extensions` and turn on **Developer mode**
+     (bottom-left toggle).
+   - **Chrome:** go to `chrome://extensions` and turn on **Developer mode**
+     (top-right toggle).
+4. Click **Load unpacked** and select the extracted folder. "Ad & Tracker
+   Blocker" appears, already enabled.
+5. Optional: click the puzzle-piece icon in the toolbar and pin the extension.
+6. Click the toolbar icon, then open an ad-heavy site to confirm ads and
+   trackers are blocked. Reload tabs that were already open.
+
+Optional: a Task Scheduler job can refresh the filter rules daily (needs
+Python 3). Details, troubleshooting, and the "This site is broken?" notes are
+in [`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md).
+
+## Quick start (Mac / Safari)
 
 1. Open `Ad Tracker Blocker/Ad Tracker Blocker.xcodeproj` in Xcode, sign both
    targets with your free Apple ID ("Personal Team"), and build/run (**Cmd+R**).
