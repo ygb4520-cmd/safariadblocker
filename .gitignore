@@ -4,3 +4,4 @@ scripts/logs/*.log
 **/xcuserdata/
 **/*.xcuserstate
 AdTrackerBlocker-Windows.zip
+AdTrackerBlocker-Mac-Source.zip

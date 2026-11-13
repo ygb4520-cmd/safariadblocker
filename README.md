@@ -1,6 +1,10 @@
 <p align="center">
-  <a href="https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip">
-    <img alt="Download" src="https://img.shields.io/badge/%E2%AC%87%20%20DOWNLOAD%20(ZIP)-2ea44f?style=for-the-badge&logoColor=white" height="60">
+  <a href="https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Windows.zip">
+    <img alt="Download for Windows" src="https://img.shields.io/badge/%E2%AC%87%20%20DOWNLOAD%20FOR%20WINDOWS-0078D4?style=for-the-badge&logoColor=white" height="60">
+  </a>
+  &nbsp;
+  <a href="https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Mac-Source.zip">
+    <img alt="Download for Mac" src="https://img.shields.io/badge/%E2%AC%87%20%20DOWNLOAD%20FOR%20MAC-2ea44f?style=for-the-badge&logoColor=white" height="60">
   </a>
 </p>
 
@@ -16,30 +20,18 @@ picker for hiding anything else yourself, YouTube ad mitigation, a per-site
 and a popup UI for managing it all. Built for local use through Xcode with a
 free Apple ID — no paid Developer Program, no App Store.
 
-## There's no download button for this one
+## Downloads
 
-Unlike the other apps, this repo doesn't publish a compiled installer —
-both versions run from source:
+You don't need the command line. Click the button for your system above, or
+use the table below (always the latest release):
 
-- **Mac (Safari)**: build it yourself via Xcode — free, ~5 minutes, no paid
-  account needed. See **Quick start** right below.
-- **Windows (Edge/Chrome)**: no build step at all — see
-  **[`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md)**
-  for how to load it directly into your browser.
+| System | Download | What it is |
+| --- | --- | --- |
+| Windows (Edge/Chrome) | [AdTrackerBlocker-Windows.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Windows.zip) | The extension, ready to load. No build step — see [`WindowsExtension/README-WINDOWS.md`](WindowsExtension/README-WINDOWS.md). |
+| Mac (Safari) | [AdTrackerBlocker-Mac-Source.zip](https://github.com/ygb4520-cmd/safariadblocker/releases/latest/download/AdTrackerBlocker-Mac-Source.zip) | Xcode project + scripts + README. Build it yourself via Xcode (free, ~5 minutes, no paid account). See **Quick start** below. |
+| I want everything | [Whole repo (ZIP)](https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip) | The full source of both versions. |
 
-## Getting the files
-
-You don't need the command line. Either:
-
-- **In a browser (easiest):** open
-  <https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip>
-  and the zip downloads straight to your Downloads folder. Or, on the repo
-  page, click the green **Code** button, then **Download ZIP**.
-- **From a terminal (optional):** on Windows PowerShell,
-  `curl.exe --ssl-no-revoke -L -o "$env:USERPROFILE\Downloads\safariadblocker.zip" "https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip"`.
-  On a Mac, `curl -L -o ~/Downloads/safariadblocker.zip https://github.com/ygb4520-cmd/safariadblocker/archive/refs/heads/main.zip`.
-
-Then unzip it somewhere permanent (not `Downloads`) and follow the steps below.
+Unzip it somewhere permanent (not `Downloads`) and follow the steps below.
 
 ## Quick start
 
