@@ -786,4 +786,4 @@ Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/sa
 
 ---
 
-Current extension version: 1.0.4
+Current extension version: 1.0.5
