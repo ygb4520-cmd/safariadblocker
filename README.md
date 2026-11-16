@@ -33,7 +33,7 @@ use the table below (always the latest release):
 
 Unzip it somewhere permanent (not `Downloads`) and follow the Quick start for your system below.
 
-_Maintainers: the download links above resolve to the newest GitHub Release. A release (with both zips attached) is built automatically when a tag named `v<version>` matching `WindowsExtension/manifest.json` is pushed, e.g. `v1.0.3`. Tags without the leading `v` (such as `1.00`) do not trigger the build, so they produce no downloadable files._
+_Maintainers: the download links above resolve to the newest GitHub Release. A release (with both zips attached) is built automatically when a tag named `v<version>` matching `WindowsExtension/manifest.json` is pushed, e.g. `v1.0.4`. Tags without the leading `v` (such as `1.00`) do not trigger the build, so they produce no downloadable files._
 
 ## Quick start (Windows — Edge or Chrome)
 
@@ -786,4 +786,4 @@ Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/sa
 
 ---
 
-Current extension version: 1.0.3
+Current extension version: 1.0.4
