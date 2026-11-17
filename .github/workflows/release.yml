@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - '[0-9]*'
 
 permissions:
   contents: write
@@ -16,12 +17,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check tag matches manifest version
+        shell: bash
         run: |
           TAG="${GITHUB_REF_NAME#v}"
-          VER=$(python3 -c "import json; print(json.load(open('WindowsExtension/manifest.json'))['version'])")
-          echo "tag=$TAG manifest=$VER"
-          if [ "$TAG" != "$VER" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $VER"
+          MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('WindowsExtension/manifest.json'))['version'])")
+          NORMALIZED_TAG="${TAG//./}"
+          NORMALIZED_MANIFEST="${MANIFEST_VERSION//./}"
+          echo "tag=$TAG manifest=$MANIFEST_VERSION"
+          if [[ "$NORMALIZED_TAG" != "$NORMALIZED_MANIFEST" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $MANIFEST_VERSION"
             exit 1
           fi
 
@@ -38,6 +42,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             AdTrackerBlocker-Windows.zip
             AdTrackerBlocker-Mac-Source.zip
