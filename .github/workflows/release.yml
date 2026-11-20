@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*'
       - '[0-9]*'
+  workflow_dispatch: {}   # started on a tag by auto-tag.yml
 
 permissions:
   contents: write

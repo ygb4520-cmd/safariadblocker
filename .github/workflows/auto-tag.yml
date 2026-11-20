@@ -1,0 +1,49 @@
+name: Auto-tag new versions
+
+# When a change lands on main with a version number that has no tag yet (and is newer than every earlier release), create the
+# tag and start the Release build on it, exactly as if the tag had been pushed by hand. Same version as an existing tag, or an
+# older one: nothing happens. (The version is read from WindowsExtension/manifest.json, which the release build also checks.)
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: auto-tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag a new version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(python3 -c "import json; print(json.load(open('WindowsExtension/manifest.json'))['version'])")"
+          echo "Version in the code: $VERSION"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "Not a plain x.y.z version; nothing to do."; exit 0; fi
+          TAG="v$VERSION"
+          # This repo's older tags have no "v" and drop the middle dot (1.0.5 was tagged 1.05); count both styles as "already released".
+          OLDSTYLE="$(echo "$VERSION" | sed -E 's/^([0-9]+)\.([0-9])\.([0-9])$/\1.\2\3/')"
+          git fetch --tags --quiet
+          for T in "$TAG" "$VERSION" "$OLDSTYLE"; do
+            if git rev-parse -q --verify "refs/tags/$T" >/dev/null; then echo "Tag $T already exists; nothing to do."; exit 0; fi
+          done
+          LATEST="$(git tag -l | sed -E 's/^v//; s/^([0-9]+)\.([0-9])([0-9])$/\1.\2.\3/' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+          if [ -n "$LATEST" ] && [ "$(printf '%s\n%s\n' "$LATEST" "$VERSION" | sort -V | tail -1)" != "$VERSION" ]; then
+            echo "$VERSION is not newer than the latest released version $LATEST; refusing to publish an older version."; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG (automatic: new version number reached main)" "$GITHUB_SHA"
+          git push origin "refs/tags/$TAG"
+          # Tags pushed with the built-in token do not start the release build by themselves, but a manual start is allowed:
+          gh workflow run release.yml --ref "$TAG"
+          echo "Tagged $TAG and started the release build."
