@@ -118,6 +118,7 @@ safariadblocker/
     ├── convert_filterlists.py       # regenerates rules/*.json from all upstream sources
     ├── test_convert_filterlists.py  # automated tests for the parser functions above
     ├── test_diagnose_core.js        # Node tests for the diagnoser's rule matcher / ranking / guided test
+    ├── test_background_rules.js     # Node tests: real background.js vs a fake browser API (referrer rule, exceptions, overlay)
     ├── check_xcode_resources.py     # fails if a Resources/ file isn't wired into the Xcode project
     └── generate_icons.py            # regenerates the toolbar icon PNGs
 ```
@@ -276,8 +277,11 @@ Safari's Extensions settings is on.
   scoped to the current tab's domain, which overrides every block rule
   (static or dynamic) regardless of which categories are enabled.
 - **Referrer Privacy**: one more fixed dynamic rule — strips the `Referer`
-  header on third-party requests only (not first-party ones, to avoid
-  breaking same-origin referer checks some sites legitimately rely on).
+  header on third-party **images, pings, fonts and stylesheets** only (not
+  first-party requests, to avoid breaking same-origin referer checks, and not
+  API/media/frame/script requests, which sites often need: the broader
+  version of this rule stalled Amazon Music, found with the diagnoser below).
+  Add a per-site exemption from the diagnoser if a site still needs it.
   Doesn't come from a downloaded filter list, so it's a plain
   `declarativeNetRequest` `modifyHeaders` rule rather than its own static
   ruleset.
@@ -497,7 +501,15 @@ pre-filled tab) builds a plain-text report with query strings stripped from
 all web addresses. Nothing is ever sent automatically.
 
 Tests: `node scripts/test_diagnose_core.js` (the matcher is checked against
-the real bundled rule files).
+the real bundled rule files) and `node scripts/test_background_rules.js`
+(runs the real `background.js` against a fake browser API and checks the rules
+it creates: the narrowed referrer rule, per-site exceptions, the guided-test
+overlay, snapshot and import validation).
+
+**Report details.** The report lists which hosts and request types had the
+referrer removed, and includes a URL-free **snapshot of what was blocked before
+the first fix** (kept for an hour per site, so fixing things doesn't erase the
+evidence).
 
 ### Adopting uBlock's lists without uBlock's scriptlet engine
 

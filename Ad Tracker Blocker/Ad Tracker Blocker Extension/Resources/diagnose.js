@@ -122,11 +122,11 @@ async function resolveExact(matchLog, state, bases) {
   );
 
   const blocks = [];
-  const referrerHosts = [];
+  const referrerHits = []; // {host, kind}: requests whose Referer header we removed
   for (const e of matchLog) {
     if (e.rs === "_dynamic") {
       if (e.ri === bases.referrer) {
-        referrerHosts.push(D.hostFromUrl(e.u));
+        referrerHits.push({ host: D.hostFromUrl(e.u), kind: TYPE_TO_KIND[e.ty] || "other" });
         continue;
       }
       const inRange = (range) => e.ri >= range[0] && e.ri <= range[1];
@@ -144,7 +144,7 @@ async function resolveExact(matchLog, state, bases) {
       });
     }
   }
-  return { blocks, referrerHosts };
+  return { blocks, referrerHits };
 }
 
 // Everything the page knows, merged into one analysis object.
@@ -152,7 +152,7 @@ async function analyze(data) {
   const { state, hostname, pageLog, matchLog, canExact, dynamicRuleBases } = data;
   const out = {
     groups: [], notOurs: 0, hiddenCosmetic: [], hiddenHeuristic: [], popupsBlocked: 0,
-    referrerHosts: [], canExact, watched: !!pageLog, callsWatched: !!(pageLog && pageLog.failedCalls),
+    referrerHits: [], canExact, watched: !!pageLog, callsWatched: !!(pageLog && pageLog.failedCalls),
     cleanupOn: !!(pageLog && pageLog.cleanupOn), popupsOn: !!(pageLog && pageLog.popupsOn),
   };
   if (!pageLog) return out;
@@ -165,15 +165,15 @@ async function analyze(data) {
   }
 
   // 2. Exact attribution where the browser can give it.
-  let exact = { blocks: [], referrerHosts: [] };
+  let exact = { blocks: [], referrerHits: [] };
   if (canExact && matchLog && matchLog.length) {
     try {
       exact = await resolveExact(matchLog, state, dynamicRuleBases);
     } catch {
-      exact = { blocks: [], referrerHosts: [] };
+      exact = { blocks: [], referrerHits: [] };
     }
   }
-  out.referrerHosts = exact.referrerHosts;
+  out.referrerHits = exact.referrerHits;
 
   const items = new Map(); // url -> item
   for (const b of exact.blocks) items.set(b.url.split("#")[0], { ...b, url: b.url.split("#")[0] });
@@ -268,8 +268,36 @@ async function refresh() {
 }
 
 // ---- Fix actions ---------------------------------------------------------------------
+// Compact, URL-free picture of what we saw BEFORE a fix, so a later report
+// can still show what was blocked after the fix has made the list empty.
+function snapshotOf(analysis) {
+  return {
+    at: Date.now(),
+    groups: analysis.groups.slice(0, 30).map((g) => ({
+      host: g.host, count: g.items.length, lists: g.lists, label: g.label, exact: g.exact,
+    })),
+    hidden: analysis.hiddenCosmetic.slice(0, 10).map((m) => ({
+      selector: m.selector.slice(0, 100), count: m.count, interesting: !!m.interesting,
+    })),
+    referrerCount: analysis.referrerHits.length,
+    popupsBlocked: analysis.popupsBlocked,
+  };
+}
+
+// "cdn.example.net (image) x3, api.other.org (fetch)" -- top hosts by count.
+function summarizeReferrerHits(hits, limit) {
+  const counts = new Map();
+  for (const h of hits) {
+    const key = `${h.host} (${h.kind})`;
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  const shown = rows.slice(0, limit).map(([k, n]) => (n > 1 ? `${k} x${n}` : k));
+  return shown.join(", ") + (rows.length > limit ? `, +${rows.length - limit} more` : "");
+}
+
 async function applyFix(items, what) {
-  const res = await send({ type: "DIAG_APPLY_FIX", items });
+  const res = await send({ type: "DIAG_APPLY_FIX", items, snapshot: ctx ? snapshotOf(ctx.analysis) : null, hostname: ctx ? ctx.data.hostname : null });
   await refresh();
   if (!res || !res.added) {
     setStatus(h("span", {}, "Nothing new to apply — that fix is already in place."));
@@ -492,10 +520,10 @@ function renderOther(analysis) {
   const state = ctx.data.state;
   const covered = (kind) => (state.siteExceptions || []).some((e) => e.kind === kind && hostCovered(host, e.hostname));
   const sec = h("details", { class: "diag-section" }, h("summary", {}, "Referrer and pop-ups"));
-  const exactLine = analysis.referrerHosts.length
-    ? ` It removed the referrer from ${plural(analysis.referrerHosts.length, "request")} (to ${[...new Set(analysis.referrerHosts)].slice(0, 4).join(", ")}).`
+  const exactLine = analysis.referrerHits.length
+    ? ` It removed the referrer from ${plural(analysis.referrerHits.length, "request")} (${summarizeReferrerHits(analysis.referrerHits, 4)}).`
     : "";
-  sec.append(h("p", {}, state.referrerPrivacy ? "Referrer Privacy is on: requests to other sites don't say which site you came from." + exactLine : "Referrer Privacy is off."));
+  sec.append(h("p", {}, state.referrerPrivacy ? "Referrer Privacy is on: images, fonts, stylesheets and pings sent to other sites don't say which site you came from." + exactLine : "Referrer Privacy is off."));
   if (state.referrerPrivacy && !covered("referrer")) {
     sec.append(h("div", { class: "diag-actions" },
       h("button", { class: "secondary-btn", onclick: () => applyFix([{ kind: "referrer", hostname: host }], "Referrer Privacy is now off for this site only.") }, "Don't hide the referrer on this site")));
@@ -563,16 +591,28 @@ function buildReport() {
     }
   }
   if (analysis.notOurs) lines.push(`  (+${analysis.notOurs} other failed requests not caused by our rules)`);
-  lines.push("", "Hidden by element-hiding lists:");
-  if (analysis.hiddenCosmetic.length === 0) lines.push("  none");
+  lines.push("", "Hidden by element-hiding lists / page cleanup:");
+  if (analysis.hiddenCosmetic.length === 0 && analysis.hiddenHeuristic.length === 0) lines.push("  none");
   for (const m of analysis.hiddenCosmetic.slice(0, 10)) {
     lines.push(`  - ${m.samples[0].desc} x${m.count} via ${m.selector.slice(0, 100)}${m.interesting ? " (has text/media)" : ""}`);
   }
   for (const x of analysis.hiddenHeuristic) lines.push(`  - cleanup: ${x.count} x ${x.reason}`);
   lines.push("", `Pop-ups blocked: ${analysis.popupsBlocked}`);
-  if (analysis.referrerHosts.length) lines.push(`Referrer removed on ${analysis.referrerHosts.length} requests`);
+  if (analysis.referrerHits.length) {
+    lines.push(`Referrer removed on ${analysis.referrerHits.length} requests: ${summarizeReferrerHits(analysis.referrerHits, 10)}`);
+  }
+  const snap = data.snapshot && data.snapshot.hostname === hostname ? data.snapshot : null;
+  if (snap) {
+    lines.push("", `Before any fixes (captured ${new Date(snap.at).toISOString()}):`);
+    if (snap.groups.length === 0) lines.push("  no blocked requests");
+    for (const g of snap.groups) {
+      lines.push(`  - ${g.host}: ${plural(g.count, "request")} blocked by ${g.lists.map((l) => LIST_LABELS[l] || l).join(", ")} ${g.exact ? "(exact)" : "(likely)"} — ${g.label}`);
+    }
+    for (const m of snap.hidden) lines.push(`  - hidden: ${m.selector} x${m.count}${m.interesting ? " (has text/media)" : ""}`);
+    lines.push(`  referrer removed on ${snap.referrerCount} requests, ${snap.popupsBlocked} pop-ups blocked`);
+  }
   const mine = (state.siteExceptions || []).filter((e) => hostCovered(hostname, e.hostname));
-  lines.push("", `Fixes applied on this site: ${mine.length === 0 ? "none" : ""}`);
+  lines.push("", mine.length === 0 ? "Fixes applied on this site: none" : "Fixes applied on this site:");
   for (const e of mine) lines.push(`  - ${describeException(e)}`);
   return lines.join("\n");
 }

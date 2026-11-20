@@ -16,7 +16,7 @@
   // ---- Features the guided test can switch off ---------------------------
   const FEATURES = [
     { id: "referrer", label: "Referrer Privacy",
-      what: "hides which site you came from when a page talks to other sites" },
+      what: "hides which site you came from on images, fonts and similar requests to other sites" },
     { id: "popups", label: "Pop-up / redirect protection",
       what: "blocks pop-ups and forced redirects the page opens on its own" },
     { id: "cleanup", label: "Page cleanup",

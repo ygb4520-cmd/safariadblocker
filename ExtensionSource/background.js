@@ -16,9 +16,10 @@
 //    regardless of which categories are enabled.
 //  - "Referrer Privacy" is one more dynamic rule (fixed ID, not list-derived
 //    data so it doesn't need a whole static ruleset of its own): strips the
-//    Referer header on third-party requests only, not first-party ones --
-//    aggressive enough for real privacy benefit, conservative enough not to
-//    break same-origin referer checks some sites legitimately rely on.
+//    Referer header on third-party images, pings, fonts and stylesheets only
+//    -- not first-party requests, and not API/media/frame/script requests --
+//    real privacy benefit for tracking-shaped requests, conservative enough
+//    not to break the referer checks sites legitimately rely on.
 //  - "Site exceptions" (siteExceptions) are the fixes the "This site is
 //    broken?" diagnoser creates: per-site allow rules for individual request
 //    hosts (dynamic rules, priority 200, IDs 10000-14999), per-site Referrer
@@ -42,6 +43,8 @@ const CUSTOM_RULE_ID_END = 4999; // inclusive upper bound reserved for custom-pa
 const PAUSE_RULE_ID_START = 5000;
 const PAUSE_RULE_ID_END = 8999; // reserved range for per-site pause/allow rules (thousands of paused sites is unrealistic)
 const REFERRER_RULE_ID = 9000; // fixed, single rule -- just past pause's range
+// Request types Referrer Privacy strips the header from (see syncReferrerPrivacyRule).
+const REFERRER_RESOURCE_TYPES = ["image", "ping", "font", "stylesheet"];
 const EXCEPTION_RULE_ID_START = 10000;
 const EXCEPTION_RULE_ID_END = 14999; // per-site "allow this request host" rules from the diagnoser
 const EXCEPTION_PRIORITY = 200; // outranks pause (100) and every list rule
@@ -69,6 +72,8 @@ const DEFAULT_STATE = {
 // ending or expiring a test just re-syncs -- nothing to put back.
 const DIAG_KEY = "diagnosticSession";
 const DIAG_RESULT_KEY = "diagnosticResult";
+const DIAG_SNAPSHOT_KEY = "diagnosticSnapshot";
+const DIAG_SNAPSHOT_KEEP_MS = 60 * 60 * 1000; // an earlier pre-fix snapshot for the same site wins for an hour
 const DIAG_EXPIRY_MS = 15 * 60 * 1000;
 const DIAG_FEATURE_IDS = ["referrer", "popups", "cleanup", "trackers", "ads", "antiadblock", "fmhy", "annoyances", "malware", "custom"];
 
@@ -255,7 +260,16 @@ async function syncReferrerPrivacyRule(state) {
         // first-party requests risks breaking same-origin referer checks
         // (some login/CSRF/hotlink-protection flows legitimately rely on
         // it); third-party is where the actual privacy leak is anyway.
-        condition: { domainType: "thirdParty" },
+        //
+        // And only for the request types that are tracking-shaped and rarely
+        // need the header: images (tracking pixels), pings/beacons, fonts and
+        // stylesheets. Deliberately NOT xmlhttprequest, media, sub_frame or
+        // script: those carry a site's own API, streaming and login calls to
+        // its other domains, and stripping the header there broke Amazon
+        // Music (found with the "This site is broken?" guided test: 29
+        // requests had lost their referrer and the player stalled), and
+        // scripts include referrer-restricted API keys (e.g. map embeds).
+        condition: { domainType: "thirdParty", resourceTypes: REFERRER_RESOURCE_TYPES },
       });
       // Sites the diagnoser found Referrer Privacy breaking.
       const exempt = (state.siteExceptions || [])
@@ -528,6 +542,43 @@ function newId() {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Keeps a compact "what was blocked before any fix" snapshot for the report.
+// Everything is rebuilt field by field from known shapes (it came from a page
+// script's message), and the FIRST snapshot for a site wins for an hour so a
+// second fix doesn't overwrite the picture of the original problem.
+const SNAPSHOT_LISTS = ["ads", "trackers", "malware", "annoyances", "antiadblock", "fmhy", "custom", "paused", "exception"];
+const SNAPSHOT_LABELS = ["possibly needed", "unclear", "probably harmless"];
+
+async function rememberSnapshot(raw, hostname) {
+  if (!raw || typeof raw !== "object" || !isHostname(hostname)) return;
+  const host = hostname.toLowerCase();
+  const stored = await api.storage.local.get(DIAG_SNAPSHOT_KEY);
+  const old = stored[DIAG_SNAPSHOT_KEY];
+  if (old && old.hostname === host && Date.now() - old.at < DIAG_SNAPSHOT_KEEP_MS) return;
+  const num = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(v, 1e6)) : 0);
+  const snapshot = {
+    hostname: host,
+    at: Date.now(),
+    groups: (Array.isArray(raw.groups) ? raw.groups : [])
+      .filter((g) => g && isHostname(g.host))
+      .slice(0, 30)
+      .map((g) => ({
+        host: g.host.toLowerCase(),
+        count: num(g.count),
+        lists: (Array.isArray(g.lists) ? g.lists : []).filter((l) => SNAPSHOT_LISTS.includes(l)),
+        label: SNAPSHOT_LABELS.includes(g.label) ? g.label : "unclear",
+        exact: !!g.exact,
+      })),
+    hidden: (Array.isArray(raw.hidden) ? raw.hidden : [])
+      .filter((m) => m && typeof m.selector === "string")
+      .slice(0, 10)
+      .map((m) => ({ selector: m.selector.slice(0, 100), count: num(m.count), interesting: !!m.interesting })),
+    referrerCount: num(raw.referrerCount),
+    popupsBlocked: num(raw.popupsBlocked),
+  };
+  await api.storage.local.set({ [DIAG_SNAPSHOT_KEY]: snapshot });
+}
+
 async function applyExceptionChange(state, siteExceptions) {
   await setState({ siteExceptions });
   const newState = { ...state, siteExceptions };
@@ -585,9 +636,10 @@ async function handleMessage(message) {
         pageLog = await api.tabs.sendMessage(tab.id, { type: "GET_DIAG_LOG" }).catch(() => null);
       }
       await loadMatchLog();
-      const stored = await api.storage.local.get(DIAG_RESULT_KEY);
+      const stored = await api.storage.local.get([DIAG_RESULT_KEY, DIAG_SNAPSHOT_KEY]);
       return {
         state,
+        snapshot: stored[DIAG_SNAPSHOT_KEY] || null,
         tabId: tab ? tab.id : null,
         hostname,
         session: activeDiagnostic(),
@@ -652,6 +704,7 @@ async function handleMessage(message) {
       // test first -- otherwise the "did it help?" check would still have
       // features switched off.
       if (currentDiagnostic) await endDiagnostic();
+      await rememberSnapshot(message.snapshot, message.hostname);
       const incoming = Array.isArray(message.items) ? message.items : [];
       const batchId = newId();
       const addedAt = Date.now();
