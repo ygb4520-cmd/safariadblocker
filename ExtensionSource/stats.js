@@ -6,6 +6,7 @@ const CATEGORIES = [
   { id: "malware", label: "Malware / Phishing", file: "malware.json" },
   { id: "annoyances", label: "Annoyances", file: "annoyances.json" },
   { id: "antiadblock", label: "Anti-Adblock", file: "antiadblock.json" },
+  { id: "fmhy", label: "FMHY unsafe sites", file: "fmhy.json" },
 ];
 
 function formatRelativeTime(epochMs) {

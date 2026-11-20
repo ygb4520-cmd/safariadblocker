@@ -104,6 +104,7 @@ safariadblocker/
 │       ├── malware.json           # URLhaus + phishing-filter
 │       ├── annoyances.json        # uBlock Origin's cookie-notice + other-annoyances lists
 │       ├── antiadblock.json       # EasyList's Adblock Warning Removal List
+│       ├── fmhy.json              # FMHY "Unsafe sites" filterlist (own toggle)
 │       ├── cosmetic.json          # ##/#@# element-hiding rules from all of the above
 │       └── meta.json              # per-file "last updated" timestamps, for the popup's health line
 ├── Ad Tracker Blocker/            # the Xcode project (open this in Xcode)
@@ -786,4 +787,4 @@ Found a bug or have a question? Open an issue: https://github.com/ygb4520-cmd/sa
 
 ---
 
-Current extension version: 1.0.5
+Current extension version: 1.0.6

@@ -24,6 +24,7 @@
     { id: "trackers", label: "Trackers list", what: "blocks known tracking requests" },
     { id: "ads", label: "Ads list", what: "blocks known ad requests" },
     { id: "antiadblock", label: "Anti-Adblock list", what: "blocks scripts that nag about ad blockers" },
+    { id: "fmhy", label: "FMHY unsafe sites list", what: "blocks sites the FMHY community flags as unsafe" },
     { id: "annoyances", label: "Annoyances list", what: "blocks cookie banners and similar pop-overs" },
     { id: "malware", label: "Malware / Phishing list", what: "blocks known dangerous sites" },
     { id: "custom", label: "Your custom blocking patterns", what: "blocks the patterns you added yourself" },
@@ -40,7 +41,7 @@
     if (state.referrerPrivacy !== false) ids.push("referrer");
     if (state.popupRedirectProtection !== false) ids.push("popups");
     if (on.ads || on.trackers) ids.push("cleanup");
-    for (const id of ["trackers", "ads", "antiadblock", "annoyances", "malware"]) {
+    for (const id of ["trackers", "ads", "antiadblock", "fmhy", "annoyances", "malware"]) {
       if (on[id]) ids.push(id);
     }
     if (on.custom && (state.customPatterns || []).length > 0) ids.push("custom");

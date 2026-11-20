@@ -1,9 +1,9 @@
 // Background service worker: owns all declarativeNetRequest state.
 //
 // Categories:
-//  - "ads" / "trackers" / "malware" / "annoyances" / "antiadblock": static
+//  - "ads" / "trackers" / "malware" / "annoyances" / "antiadblock" / "fmhy": static
 //    rulesets bundled at build time (rules/ads.json, rules/trackers.json,
-//    rules/malware.json, rules/annoyances.json, rules/antiadblock.json).
+//    rules/malware.json, rules/annoyances.json, rules/antiadblock.json, rules/fmhy.json).
 //    Toggled on/off via updateEnabledRulesets.
 //  - "custom": static rulesets are immutable once packaged, so user-added
 //    patterns can't be appended to a bundled rules/custom.json at runtime.
@@ -49,7 +49,7 @@ const MAX_SITE_EXCEPTIONS = 500;
 const EXCEPTION_KINDS = ["url", "referrer", "popups", "cleanup", "cosmetic"];
 
 const DEFAULT_STATE = {
-  rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, antiadblock: true, custom: true },
+  rulesetsEnabled: { ads: true, trackers: true, malware: true, annoyances: true, antiadblock: true, fmhy: true, custom: true },
   customPatterns: [], // array of raw pattern strings, e.g. "example.com" or "||ads.example.com^"
   pausedDomains: [], // array of hostnames currently whitelisted
   popupRedirectProtection: true, // content.js: window.open guard + meta-refresh stripping
@@ -70,7 +70,7 @@ const DEFAULT_STATE = {
 const DIAG_KEY = "diagnosticSession";
 const DIAG_RESULT_KEY = "diagnosticResult";
 const DIAG_EXPIRY_MS = 15 * 60 * 1000;
-const DIAG_FEATURE_IDS = ["referrer", "popups", "cleanup", "trackers", "ads", "antiadblock", "annoyances", "malware", "custom"];
+const DIAG_FEATURE_IDS = ["referrer", "popups", "cleanup", "trackers", "ads", "antiadblock", "fmhy", "annoyances", "malware", "custom"];
 
 let currentDiagnostic = null; // {hostname, tabId, phase, candidates, disabled, startedAt}
 let diagnosticLoaded = null;
@@ -137,7 +137,7 @@ async function syncStaticRulesets(state) {
   state = overlayState(state);
   const enable = [];
   const disable = [];
-  for (const id of ["ads", "trackers", "malware", "annoyances", "antiadblock"]) {
+  for (const id of ["ads", "trackers", "malware", "annoyances", "antiadblock", "fmhy"]) {
     (state.rulesetsEnabled[id] ? enable : disable).push(id);
   }
   await api.declarativeNetRequest.updateEnabledRulesets({

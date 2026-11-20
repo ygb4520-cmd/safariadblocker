@@ -12,11 +12,12 @@ const LIST_LABELS = {
   malware: "Malware / Phishing list",
   annoyances: "Annoyances list",
   antiadblock: "Anti-Adblock list",
+  fmhy: "FMHY unsafe sites list",
   custom: "your custom patterns",
   paused: "site pause",
   exception: "your site fixes",
 };
-const STATIC_LISTS = ["ads", "trackers", "malware", "annoyances", "antiadblock"];
+const STATIC_LISTS = ["ads", "trackers", "malware", "annoyances", "antiadblock", "fmhy"];
 const ISSUES_URL = "https://github.com/ygb4520-cmd/safariadblocker/issues/new";
 const REASON_TEXT = {
   "failed-load": "an image or frame that failed to load",
@@ -548,7 +549,7 @@ function buildReport() {
     `Browser: ${navigator.userAgent}`,
     `Exact rule matching available: ${analysis.canExact ? "yes" : "no (estimated)"}`,
     "",
-    "Settings: " + ["ads", "trackers", "malware", "annoyances", "antiadblock", "custom"].map((k) => `${k}=${on(state.rulesetsEnabled[k])}`).join(", ") +
+    "Settings: " + ["ads", "trackers", "malware", "annoyances", "antiadblock", "fmhy", "custom"].map((k) => `${k}=${on(state.rulesetsEnabled[k])}`).join(", ") +
       `, referrerPrivacy=${on(state.referrerPrivacy)}, popups=${on(state.popupRedirectProtection !== false)}` +
       `, paused=${(state.pausedDomains || []).includes(hostname)}`,
   ];

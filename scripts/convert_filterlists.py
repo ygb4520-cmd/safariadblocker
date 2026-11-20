@@ -76,6 +76,15 @@ ANTIADBLOCK_SOURCES = [
     ("https://easylist-downloads.adblockplus.org/antiadblockfilters.txt", "antiadblock.txt"),
 ]
 
+# FMHY's "Unsafe sites filterlist" -- hosts the FMHY community flags as
+# malicious or not recommended (pirate-site ad gateways, fake downloaders,
+# etc). Plain ABP-syntax `||host^` lines, so it goes through the same
+# converter as every other list. Shipped as its own ruleset with its own
+# toggle so it can be switched off independently.
+FMHY_SOURCES = [
+    ("https://raw.githubusercontent.com/fmhy/FMHYFilterlist/main/filterlist.txt", "fmhy.txt"),
+]
+
 # Options that change semantics in ways declarativeNetRequest can't safely
 # replicate via a simple block/allow + urlFilter rule; if present, skip the rule.
 DISQUALIFYING_OPTIONS = {
@@ -125,6 +134,7 @@ MIN_ABSOLUTE_ENTRIES = {
     # assumed-large one like the others.
     "annoyances.json": 50,
     "antiadblock.json": 200,
+    "fmhy.json": 100,
     "cosmetic.json": 5000,
 }
 # Also refuse a sudden big drop from whatever's currently shipped, even if
@@ -563,6 +573,8 @@ def main():
                      help="Max rules for annoyances.json (default 10000). uBlock's annoyances lists are mostly cosmetic (##) entries, not network-blocking ones, so the network-rule portion is much smaller than ads/trackers -- kept modest for the same combined-total reason as --max-malware-rules.")
     ap.add_argument("--max-antiadblock-rules", type=int, default=10000,
                      help="Max rules for antiadblock.json (default 10000). The Adblock Warning Removal List is a few thousand lines total -- kept modest for the same combined-total reason as --max-malware-rules.")
+    ap.add_argument("--max-fmhy-rules", type=int, default=5000,
+                     help="Max rules for fmhy.json (default 5000). The FMHY Unsafe sites filterlist is only a few hundred host entries -- the cap is just a safety bound for the combined static-rule total.")
     ap.add_argument("--max-cosmetic-rules", type=int, default=40000,
                      help="Max combined generic+domain-scoped cosmetic selectors (default 40000). These are just CSS selectors in a JSON file fetched once per page, not subject to DNR limits, but kept bounded to control bundle size and per-page injection cost.")
     ap.add_argument("--offline", action="store_true", help="Reuse previously downloaded raw lists instead of re-downloading.")
@@ -627,9 +639,19 @@ def main():
     if not ok:
         failed_files.append("antiadblock.json")
 
+    print("=== FMHY (Unsafe sites filterlist) ===")
+    fmhy_paths = fetch_sources(FMHY_SOURCES, args.offline)
+    fmhy_lines = load_lines(fmhy_paths)
+    fmhy_rules, fm_blocks_total, fm_allows_total = build_rules(fmhy_lines, args.max_fmhy_rules)
+    print(f"  parsed {fm_blocks_total:,} block + {fm_allows_total:,} allow candidate rules")
+    ok = write_ruleset(fmhy_rules, "fmhy.json")
+    results.append(("fmhy.json", len(fmhy_rules), ok))
+    if not ok:
+        failed_files.append("fmhy.json")
+
     print("=== Cosmetic (element hiding, from all lists) ===")
     cosmetic_data, cosmetic_total = build_cosmetic_rules(
-        ads_lines + tracker_lines + malware_lines + annoyances_lines + antiadblock_lines,
+        ads_lines + tracker_lines + malware_lines + annoyances_lines + antiadblock_lines + fmhy_lines,
         args.max_cosmetic_rules
     )
     print(f"  {len(cosmetic_data['generic']):,} generic + "
