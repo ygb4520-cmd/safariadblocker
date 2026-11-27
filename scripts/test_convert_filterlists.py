@@ -20,6 +20,10 @@ import convert_filterlists as cf
 
 
 class ConvertLineTests(unittest.TestCase):
+    def test_leading_double_pipe_wildcard_is_stripped(self):
+        r = cf.convert_line("||*kmspico*.*^")
+        self.assertEqual(r["condition"]["urlFilter"], "*kmspico*.*^")
+
     def test_plain_domain_block(self):
         r = cf.convert_line("||ads.example.com^")
         self.assertIsNotNone(r)

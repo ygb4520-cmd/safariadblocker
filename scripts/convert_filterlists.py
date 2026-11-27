@@ -264,6 +264,12 @@ def convert_line(line):
     if "$" in pattern:
         return None
 
+    # Chrome/Edge reject a urlFilter that starts with "||*" ("incorrect value
+    # for the urlFilter key"); a leading wildcard already floats, so drop
+    # the domain anchor.
+    while pattern.startswith("||*"):
+        pattern = pattern[2:]
+
     condition["urlFilter"] = pattern
     return {"condition": condition, "is_allow": is_allow, "pattern": pattern}
 
